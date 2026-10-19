@@ -63,7 +63,14 @@ internal static class GameScanner {
         var name = Regex.Match(text, @"""name""\s+""([^""]+)""").Groups[1].Value;
         var installDir = Regex.Match(text, @"""installdir""\s+""([^""]+)""").Groups[1].Value;
         if (id == "" || name == "" || SteamIgnore.Any(i => name.StartsWith(i, StringComparison.OrdinalIgnoreCase))) continue;
-        yield return new Game("steam", id, name, null, $"steam://rungameid/{id}", null, installDir == "" ? null : Path.Combine(dir, "common", installDir));
+        var gameDir = installDir == "" ? null : Path.Combine(dir, "common", installDir);
+        // Se o motor do jogo é conhecido, o jogo abre pelo próprio ApolloConfig, que passa a resolução do celular nos
+        // argumentos (--launch-steam); senão, abre pelo steam:// de sempre.
+        var engine = gameDir == null ? null : EngineDetector.Detect(gameDir);
+        var launch = engine == null
+          ? $"steam://rungameid/{id}"
+          : $"\"{Path.Combine(AppContext.BaseDirectory, "ApolloConfig.exe")}\" --launch-steam {id} {engine}";
+        yield return new Game("steam", id, name, null, launch, null, gameDir);
       }
     }
   }

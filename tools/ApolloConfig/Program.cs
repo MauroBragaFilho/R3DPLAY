@@ -235,6 +235,10 @@ internal static class Program {
       Environment.ExitCode = GameCloser.CloseProcessesIn(args[1]);
       return;
     }
+    if (args.Length == 3 && args[0] == "--launch-steam") {  // abre um jogo da Steam na resolução do celular
+      Environment.ExitCode = SteamLauncher.Launch(args[1], args[2]);
+      return;
+    }
     using var mutex = new Mutex(true, "ApolloConfigWindow", out var first);
     if (!first) return;  // já aberto
     var url = args.Length > 0 ? args[0] : "https://localhost:47990";

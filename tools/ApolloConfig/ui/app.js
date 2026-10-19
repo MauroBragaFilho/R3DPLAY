@@ -197,8 +197,10 @@ async function scanGames(manual) {
     const wantUndo = !!g.app['prep-cmd'];
     const hasUndo = (app['prep-cmd'] || []).some((c) => String(c.undo || '').includes('--close-dir'));
     const stale = (app['prep-cmd'] || []).some((c) => String(c.undo || '').includes('--close-dir') && c.undo !== g.app['prep-cmd'][0].undo);
-    if (app['terminate-on-pause'] === true && app['virtual-display'] === true && (!wantUndo || (hasUndo && !stale))) continue;
+    const detachedStale = JSON.stringify(g.app.detached || null) !== JSON.stringify(app.detached || null);
+    if (!detachedStale && app['terminate-on-pause'] === true && app['virtual-display'] === true && (!wantUndo || (hasUndo && !stale))) continue;
     const merged = { ...app, 'terminate-on-pause': true, 'virtual-display': true };
+    if (g.app.detached) merged.detached = g.app.detached;
     if (wantUndo) merged['prep-cmd'] = g.app['prep-cmd'];
     await api('POST', '/api/apps', merged);
   }
