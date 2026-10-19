@@ -15,13 +15,14 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 | Moonlight embutido | Parear (PIN digitado no PC) e transmitir o "Desktop" dentro do launcher, sem o app Moonlight. |
 | RetroArch embutido | Aladdin (SNES) abriu pelo motor "RetroArch embutido", com o `retroarch.cfg` migrado do fork. |
 | Stream pelo launcher | Biblioteca › PC › Desktop › JOGAR transmitiu o PC; o Apollo mostrou "Desktop" como app em execução e `/r3d/stats` marcou transmissão ao vivo a ~60 FPS. |
+| Jogo real do PC | Half-Life 2 pelo launcher (Biblioteca › PC › JOGAR): abriu no PC, transmitiu a ~60 FPS com a GTX 1650 em ~27% de uso, tela e toques funcionando; `/r3d/stats` mostrou "ao vivo". |
 | RetroArch embutido (2º jogo) | Super Metroid (SNES) abriu e rodou (cena de introdução), sem o app RetroArch instalado à parte. |
 | PS2 | Sem o pcsx2 embutido nem o NetherSX2 instalado, os jogos de PS2 abrem no app RetroArch do fork (`com.retroarch.r3dcore`), ainda instalado. |
 | Sistema › PC | Cartões de CPU, RAM, GPU, armazenamento, térmico e transmissão com dados reais; toque no cartão GPU alterna Intel ⇄ NVIDIA. |
 
 ## Ainda não testado
 
-- Abrir pelo launcher um jogo real do PC (Half-Life 2, GTA V...) e jogar. Só o "Desktop" foi transmitido.
+- Jogar de verdade um jogo do PC com controle (só vi abertura e vídeo; o Half-Life 2 começou em 30 FPS na tela de intro e foi a 60).
 - O cartão **Transmissão** na tela do celular durante o stream (o FPS ao vivo só foi lido pelo PC; o Moonlight cobre a tela do launcher).
 - RetroArch embutido com os outros cores (PS1, GBA, GB/GBC, NES, Mega Drive, N64, PC Engine, Dreamcast, PSP, DS): não há ROMs deles no cartão (só SNES e PS2). Também controle físico, som e salvar/carregar estado.
 - Saves e estados antigos (`/storage/emulated/0/R3DCORE/{saves,states,system}`): o `retroarch.cfg` migrado aponta para eles, mas não foi conferido se o jogo os encontrou.
@@ -33,6 +34,7 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 
 ## Problemas conhecidos / observações
 
+- Fechar a sessão pelo Apollo **não fecha o jogo da Steam** no PC (ele abre por `steam://` separado): o `hl2.exe` ficou aberto até eu encerrá-lo à mão.
 - Antes o **Steam Big Picture** abriu ao tentar o "Desktop": foi um toque meu na grade do Moonlight, não erro do launcher (na repetição abriu o Desktop).
 - Primeira abertura do Moonlight embutido: é preciso parear de novo (os dados do app Moonlight separado não migram).
 - O launcher precisa de "Acesso a todos os arquivos" para o RetroArch abrir ROMs (`adb shell appops set com.r3dcore.launcher MANAGE_EXTERNAL_STORAGE allow`).
