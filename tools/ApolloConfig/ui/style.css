@@ -52,8 +52,13 @@ h3::before, .page-title::before { content: '// '; }
 .dot.ok { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); } .dot.bad { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 .topline { height: 2px; flex-shrink: 0; background: linear-gradient(90deg, var(--cyan), rgba(255,38,64,.7) 45%, transparent 90%); }
 .main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.content { flex: 1; overflow-y: auto; padding: 24px 32px 32px; }
-.screen { display: flex; flex-direction: column; gap: 18px; max-width: 1180px; animation: in .25s var(--ease); }
+/* Largura do conteúdo: as telas ficam centralizadas (--maxw) quando a janela é mais larga; Jogos usa a largura toda (grade de capas). */
+.content { --maxw: 1180px; --pad-x: 32px; flex: 1; overflow-y: auto; padding: 24px var(--pad-x) 32px; }
+.content[data-view="games"] { --maxw: 100000px; }
+.screen { display: flex; flex-direction: column; gap: 18px; width: 100%; animation: in .25s var(--ease); }
+.screen > *, .content > .page-title { width: 100%; max-width: var(--maxw); margin-inline: auto; }
+/* barra de alterações não salvas: vai de ponta a ponta da janela, com o conteúdo alinhado à coluna centralizada */
+.screen > .savebar { width: auto; max-width: none; margin-inline: calc(var(--pad-x) * -1); padding-inline: calc(var(--pad-x) + max(0px, (100% - var(--maxw)) / 2)); }
 @keyframes in { from { opacity: 0; transform: translateY(6px); } }
 ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-thumb { background: var(--card-hover); } ::-webkit-scrollbar-track { background: transparent; }
 
@@ -144,5 +149,5 @@ label.check input { width: 18px; height: 18px; accent-color: var(--accent); clip
 .toast.ok { border-left-color: var(--ok); } .toast.err { border-left-color: var(--accent); }
 dialog { background: var(--card); color: var(--text); border: 0; padding: 24px; max-width: 420px; clip-path: var(--clip-big); }
 dialog::backdrop { background: rgba(5,7,12,.75); }
-@media (max-width: 900px) { .topbar { gap: 12px; padding: 0 16px; } .brand > div { display: none; } .status-line span:last-child { display: none; } .content { padding: 18px 16px; } }
+@media (max-width: 900px) { .topbar { gap: 12px; padding: 0 16px; } .brand > div { display: none; } .status-line span:last-child { display: none; } .content { --pad-x: 16px; padding-top: 18px; padding-bottom: 18px; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -36,6 +36,7 @@ export async function showTab(id, params = {}) {
   const changed = active !== id;
   active = id;
   if (changed) $('.content').scrollTop = 0;   // cada aba abre no topo (a rolagem da anterior não vale para esta)
+  $('.content').dataset.view = id;              // o CSS usa para dar a largura toda à tela Jogos
   if (location.hash.slice(1) !== id) history.replaceState(null, '', `#${id}`);   // antes de esperar a rede: navegações rápidas não deixam o hash velho
   $$('.tab-button').forEach((b) => b.classList.toggle('active', b.dataset.tab === id));
   for (const [vid, v] of views) v.root.hidden = vid !== id;
@@ -49,6 +50,15 @@ export async function showTab(id, params = {}) {
 /** O app nativo pergunta isto ao fechar a janela: alguma tela tem alterações não salvas? */
 window.__r3dDirty = () => [...views.values()].some((v) => { try { return !!v.def.isDirty?.(); } catch { return false; } });
 bus.on('navigate', ({ tab, params }) => showTab(tab, params));
+
+/* ---------- Arquivos soltos na janela ---------- */
+// Um arquivo solto fora das áreas que o aceitam faria o WebView2 NAVEGAR para ele (e o painel sumiria). As telas que aceitam
+// arquivos (Jogos) tratam o drop nas áreas delas e chamam preventDefault; o resto cai aqui e é ignorado.
+window.addEventListener('dragover', (e) => {
+  if (!e.dataTransfer?.types?.includes('Files')) return;
+  if (!e.defaultPrevented) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; }
+});
+window.addEventListener('drop', (e) => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault(); });
 
 /* ---------- Estado do servidor ---------- */
 function paintOnline() {

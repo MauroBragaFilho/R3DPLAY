@@ -62,13 +62,24 @@ globalThis.window?.chrome?.webview?.addEventListener('message', (e) => {
   pending.delete(m.id);
 });
 /** Comando do app nativo. Comandos: api, login{user,pass}, logout, whoami ({user}, nunca a senha), hasCreds, scan, cover{source,gameId,name}, readCover{path}, info ({host, ips, url, dataDir}),
- * stats{port?}, rebase{port} (muda a porta do painel depois de reiniciar com outra porta), log{text}, advanced. */
+ * installedPrograms, pickFile{title?}, pickFolder{title?}, inspectProgram{path}, droppedFiles (via nativeFiles), stats{port?}, rebase{port} (muda a porta do painel depois de reiniciar com outra porta), log{text}, advanced. */
 export const native = (cmd, data = {}) => new Promise((resolve) => {
   const id = ++seq;
   pending.set(id, resolve);
   window.chrome.webview.postMessage({ id, cmd, ...data });
 });
 export const log = (text) => { native('log', { text: String(text) }); };
+/**
+ * Como native(), mas anexa arquivos soltos na página (File vindos de um evento drop): o app nativo recebe os CAMINHOS completos,
+ * que o navegador não revela (postMessageWithAdditionalObjects do WebView2). Resposta do comando "droppedFiles": { paths: [..] }.
+ */
+export const nativeFiles = (cmd, files, data = {}) => new Promise((resolve) => {
+  const wv = globalThis.window?.chrome?.webview;
+  if (!wv?.postMessageWithAdditionalObjects) { resolve({ error: 'Este ambiente não entrega o caminho dos arquivos soltos.' }); return; }
+  const id = ++seq;
+  pending.set(id, resolve);
+  wv.postMessageWithAdditionalObjects({ id, cmd, ...data }, files);
+});
 
 /**
  * Chama a API do servidor com a sessão do app nativo (relogin automático em 401).
