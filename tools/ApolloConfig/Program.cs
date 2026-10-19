@@ -231,6 +231,10 @@ internal static class Program {
       if (png != null) File.WriteAllBytes(args[3], png);
       return;
     }
+    if (args.Length == 2 && args[0] == "--close-dir") {  // fecha os processos de um jogo (usado pelo "undo" do Apollo)
+      Environment.ExitCode = GameCloser.CloseProcessesIn(args[1]);
+      return;
+    }
     using var mutex = new Mutex(true, "ApolloConfigWindow", out var first);
     if (!first) return;  // já aberto
     var url = args.Length > 0 ? args[0] : "https://localhost:47990";

@@ -7,7 +7,7 @@ using Microsoft.Win32;
 namespace ApolloConfig;
 
 /// <summary>Um jogo encontrado, já no formato aceito por /api/apps do Apollo.</summary>
-internal sealed record Game(string Source, string Id, string Name, string? Cmd, string? Detached, string? WorkingDir) {
+internal sealed record Game(string Source, string Id, string Name, string? Cmd, string? Detached, string? WorkingDir, string? InstallDir = null) {
   public string Uuid {
     get {
       var h = MD5.HashData(Encoding.UTF8.GetBytes($"r3dcore:{Source}:{Id}"));
@@ -20,6 +20,14 @@ internal sealed record Game(string Source, string Id, string Name, string? Cmd, 
     if (Cmd != null) o["cmd"] = Cmd;
     if (WorkingDir != null) o["working-dir"] = WorkingDir;
     if (Detached != null) o["detached"] = new JsonArray(Detached);
+    // Ao fim da transmissão o Apollo encerra o app; como o jogo abre por fora (steam://, launcher...), o comando "undo"
+    // fecha os processos que rodam dentro da pasta de instalação do jogo (sem tocar no launcher/Steam).
+    o["terminate-on-pause"] = true;
+    o["virtual-display"] = false;  // a tela virtual (SudoVDA) não é criada neste PC; manter desligada evita esperar à toa
+    if (InstallDir != null) {
+      var exe = Path.Combine(AppContext.BaseDirectory, "ApolloConfig.exe");
+      o["prep-cmd"] = new JsonArray(new JsonObject { ["do"] = "", ["undo"] = $"\"{exe}\" --close-dir \"{InstallDir}\"", ["elevated"] = false });
+    }
     return o;
   }
 }
@@ -53,8 +61,9 @@ internal static class GameScanner {
         var text = File.ReadAllText(acf);
         var id = Regex.Match(text, @"""appid""\s+""(\d+)""").Groups[1].Value;
         var name = Regex.Match(text, @"""name""\s+""([^""]+)""").Groups[1].Value;
+        var installDir = Regex.Match(text, @"""installdir""\s+""([^""]+)""").Groups[1].Value;
         if (id == "" || name == "" || SteamIgnore.Any(i => name.StartsWith(i, StringComparison.OrdinalIgnoreCase))) continue;
-        yield return new Game("steam", id, name, null, $"steam://rungameid/{id}", null);
+        yield return new Game("steam", id, name, null, $"steam://rungameid/{id}", null, installDir == "" ? null : Path.Combine(dir, "common", installDir));
       }
     }
   }
@@ -71,7 +80,7 @@ internal static class GameScanner {
       var item = j["CatalogItemId"]?.GetValue<string>();
       var exe = j["LaunchExecutable"]?.GetValue<string>();
       if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(app) || string.IsNullOrEmpty(exe)) continue;
-      yield return new Game("epic", app, name, null, $"com.epicgames.launcher://apps/{ns}%3A{item}%3A{app}?action=launch&silent=true", null);
+      yield return new Game("epic", app, name, null, $"com.epicgames.launcher://apps/{ns}%3A{item}%3A{app}?action=launch&silent=true", null, j["InstallLocation"]?.GetValue<string>());
     }
   }
 
@@ -84,7 +93,7 @@ internal static class GameScanner {
       var exe = k?.GetValue("exe") as string;
       var path = k?.GetValue("path") as string;
       if (name == null || exe == null || !File.Exists(exe)) continue;
-      yield return new Game("gog", id, name, $"\"{exe}\"", null, path ?? Path.GetDirectoryName(exe));
+      yield return new Game("gog", id, name, $"\"{exe}\"", null, path ?? Path.GetDirectoryName(exe), path ?? Path.GetDirectoryName(exe));
     }
   }
 
@@ -95,7 +104,7 @@ internal static class GameScanner {
       using var k = installs.OpenSubKey(id);
       var dir = (k?.GetValue("InstallDir") as string)?.TrimEnd('/', '\\');
       if (dir == null || !Directory.Exists(dir)) continue;
-      yield return new Game("ubisoft", id, Path.GetFileName(dir), null, $"uplay://launch/{id}/0", null);
+      yield return new Game("ubisoft", id, Path.GetFileName(dir), null, $"uplay://launch/{id}/0", null, dir);
     }
   }
 }

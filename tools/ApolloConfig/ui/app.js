@@ -190,6 +190,18 @@ async function scanGames(manual) {
     const r = await api('POST', '/api/apps', g.app);
     if (r.json?.status) added++;
   }
+  // Política dos jogos detectados: encerrar o app (e fechar o jogo) ao fim da transmissão e usar tela virtual.
+  for (const app of apps) {
+    const g = scanned.get(app.uuid);
+    if (!g) continue;
+    const wantUndo = !!g.app['prep-cmd'];
+    const hasUndo = (app['prep-cmd'] || []).some((c) => String(c.undo || '').includes('--close-dir'));
+    const stale = (app['prep-cmd'] || []).some((c) => String(c.undo || '').includes('--close-dir') && c.undo !== g.app['prep-cmd'][0].undo);
+    if (app['terminate-on-pause'] === true && app['virtual-display'] !== true && (!wantUndo || (hasUndo && !stale))) continue;
+    const merged = { ...app, 'terminate-on-pause': true, 'virtual-display': false };
+    if (wantUndo) merged['prep-cmd'] = g.app['prep-cmd'];
+    await api('POST', '/api/apps', merged);
+  }
   await loadApps();
   btn?.removeAttribute('disabled');
   if (!$('#screen-games').hidden) renderGames();

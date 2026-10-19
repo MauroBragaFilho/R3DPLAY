@@ -16,6 +16,8 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 | RetroArch embutido | Aladdin (SNES) abriu pelo motor "RetroArch embutido", com o `retroarch.cfg` migrado do fork. |
 | Stream pelo launcher | Biblioteca › PC › Desktop › JOGAR transmitiu o PC; o Apollo mostrou "Desktop" como app em execução e `/r3d/stats` marcou transmissão ao vivo a ~60 FPS. |
 | Jogo real do PC | Half-Life 2 pelo launcher (Biblioteca › PC › JOGAR): abriu no PC, transmitiu a ~60 FPS com a GTX 1650 em ~27% de uso, tela e toques funcionando; `/r3d/stats` mostrou "ao vivo". |
+| Fechar jogo ao sair | Sair do stream (Voltar) fez o Apollo encerrar o app e o `--close-dir` fechou o `hl2.exe` em segundos, sem fechar a Steam (testado 2 vezes). |
+| Tela cheia sem esticar | Moonlight embutido em modo "preencher" (1920x1080 cortado nas bordas para cobrir os 2400x1080 do celular); alternável em Config › Computador › Tela do jogo. |
 | RetroArch embutido (2º jogo) | Super Metroid (SNES) abriu e rodou (cena de introdução), sem o app RetroArch instalado à parte. |
 | PS2 | Sem o pcsx2 embutido nem o NetherSX2 instalado, os jogos de PS2 abrem no app RetroArch do fork (`com.retroarch.r3dcore`), ainda instalado. |
 | Sistema › PC | Cartões de CPU, RAM, GPU, armazenamento, térmico e transmissão com dados reais; toque no cartão GPU alterna Intel ⇄ NVIDIA. |
@@ -34,6 +36,7 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 
 ## Problemas conhecidos / observações
 
+- **Tela virtual (SudoVDA) não funciona neste PC**: o Apollo não consegue criar a tela (`Virtual Display creation failed`), mesmo com a GPU NVIDIA escolhida (aí o Apollo nem achou saída de vídeo e foi revertido). Por isso a proporção do celular (20:9) não vira resolução real do PC; o modo "preencher" corta ~20% de cima e de baixo. A tela virtual ficou desligada nos jogos.
 - Fechar a sessão pelo Apollo **não fecha o jogo da Steam** no PC (ele abre por `steam://` separado): o `hl2.exe` ficou aberto até eu encerrá-lo à mão.
 - Antes o **Steam Big Picture** abriu ao tentar o "Desktop": foi um toque meu na grade do Moonlight, não erro do launcher (na repetição abriu o Desktop).
 - Primeira abertura do Moonlight embutido: é preciso parear de novo (os dados do app Moonlight separado não migram).
