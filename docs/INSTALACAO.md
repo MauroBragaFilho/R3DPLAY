@@ -12,7 +12,7 @@ O mesmo instalador serve para qualquer PC com Windows 10/11 e uma GPU com codifi
 
 1. Copie `R3DPLAY-Setup.exe` para o PC e execute (pede permissão de administrador). Ele instala:
    o serviço, as regras de firewall, o driver de tela virtual (SudoVDA), o driver de controle virtual (ViGEm) e a janela **R3D PLAY**.
-2. Abra o **R3D PLAY** pelo ícone da bandeja ou pelo menu Iniciar. Na primeira vez ele pede para **criar usuário e senha**.
+2. Abra o **R3D PLAY** pelo ícone da bandeja ou pelo menu Iniciar. Ele tem cinco abas: **Início** (estado e uso do PC), **Jogos**, **Dispositivos** (parear e permissões), **Config** (todas as configurações, inclusive as avançadas) e **Sistema** (ações, senha e registro). Não há mais janela separada de opções avançadas. Na primeira vez ele pede para **criar usuário e senha**.
    Ele aplica sozinho a configuração inicial (tela virtual como principal durante o jogo) e detecta os jogos da Steam, Epic, GOG e Ubisoft.
 3. No celular, abra o R3D LAUNCHER › **Config › Computador › Procurar PCs na rede e sincronizar**. Os jogos do PC aparecem na coleção **PC**.
 4. Primeiro jogo: R3D LAUNCHER › Config › **Parear / gerenciar PCs (Moonlight)** › toque no PC › digite o PIN de 4 números no R3D PLAY (aba Início).

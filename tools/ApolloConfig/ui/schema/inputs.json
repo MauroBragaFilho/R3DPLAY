@@ -1,0 +1,304 @@
+{
+  "group": "inputs",
+  "title": "Entrada (controles, teclado, mouse)",
+  "sections": [
+    {
+      "id": "gamepad",
+      "title": "Controle de jogo (gamepad)",
+      "groups": [
+        {
+          "id": "gamepad_selection",
+          "kind": "accordion",
+          "open": true,
+          "title": "Opções de seleção automática",
+          "titleBy": {
+            "key": "gamepad",
+            "map": {
+              "auto": "Opções de seleção automática",
+              "ds4": "Opções de seleção DS4",
+              "ds5": "Opções de seleção DS5"
+            }
+          },
+          "platform": ["windows", "linux"],
+          "showIf": {
+            "key": "controller",
+            "in": ["enabled"],
+            "and": [
+              { "key": "gamepad", "in": ["auto", "ds4", "ds5"] }
+            ]
+          },
+          "translated": true,
+          "notes": "Accordion Bootstrap ABERTO por padrão (collapse show) em Inputs.vue. Título = config.gamepad_auto (gamepad=auto), config.gamepad_ds4_manual (ds4) ou config.gamepad_ds5_manual (ds5). As duas primeiras existem em pt_BR.json (\"Opções de seleção automática\" / \"Opções de seleção DS4\"); config.gamepad_ds5_manual NÃO existe em pt_BR.json nem em en.json (o painel original mostraria a chave crua) e foi traduzida por analogia com a DS4 (existe só em cs/hu/vi/zh_TW). No .vue o bloco aparece quando controller=enabled e (gamepad é ds4 ou ds5, ou é auto fora do macOS); o showIf + platform do grupo reproduzem isso (ds4 só é selecionável no Windows e ds5 só no Linux)."
+        }
+      ],
+      "options": [
+        {
+          "key": "controller",
+          "ui": "toggle",
+          "label": "Ativar entrada do controle de jogo",
+          "help": "Permite que os convidados controlem o servidor com um gamepad/controle",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "gamepad",
+          "ui": "select",
+          "label": "Tipo de gamepad emulado",
+          "help": "Escolha o tipo de gamepad a ser emulado no servidor",
+          "default": "auto",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "auto", "label": "Automático" },
+            { "value": "ds5", "label": "DS5 (PS5)", "platform": ["linux"] },
+            { "value": "switch", "label": "Nintendo Pro (Switch)", "platform": ["linux"] },
+            { "value": "xone", "label": "XOne (Xbox One)", "platform": ["linux"] },
+            { "value": "ds4", "label": "DS4 (PS4)", "platform": ["windows"] },
+            { "value": "x360", "label": "X360 (Xbox 360)", "platform": ["windows"] }
+          ],
+          "showIf": { "key": "controller", "in": ["enabled"] },
+          "notes": "Oculto no macOS (v-if platform !== 'macos') e quando controller != enabled. Rótulo do primeiro item = _common.auto (\"Automático\"). Ordem e valores como em Inputs.vue: auto; Linux: ds5, switch, xone; Windows: ds4, x360. C++ (string_restricted_f com platf::supported_gamepads): Windows aceita auto, x360, ds4 (windows/input.cpp 1731-1733); Linux aceita auto, xone, ds5, switch (linux/input/inputtino_gamepad.cpp 268-271); valor fora da lista é ignorado e fica 'auto'. Gravado como texto cru (ex.: gamepad = ds4)."
+        },
+        {
+          "key": "motion_as_ds4",
+          "ui": "toggle",
+          "label": "Emular um gamepad DS4 se o gamepad do cliente informar que há sensores de movimento presentes",
+          "help": "Se estiver desativado, os sensores de movimento não serão levados em conta durante a seleção do tipo de gamepad.",
+          "default": "enabled",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "group": "gamepad_selection",
+          "showIf": {
+            "key": "controller",
+            "in": ["enabled"],
+            "and": [
+              { "key": "gamepad", "in": ["auto"] }
+            ]
+          }
+        },
+        {
+          "key": "touchpad_as_ds4",
+          "ui": "toggle",
+          "label": "Emular um gamepad DS4 se o gamepad do cliente informar que há um touchpad presente",
+          "help": "Se estiver desativado, a presença do touchpad não será levada em conta durante a seleção do tipo de gamepad.",
+          "default": "enabled",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "group": "gamepad_selection",
+          "showIf": {
+            "key": "controller",
+            "in": ["enabled"],
+            "and": [
+              { "key": "gamepad", "in": ["auto"] }
+            ]
+          }
+        },
+        {
+          "key": "ds4_back_as_touchpad_click",
+          "ui": "toggle",
+          "label": "Mapear Voltar/Selecionar para o clique no touchpad",
+          "help": "Ao forçar a emulação DS4, mapeia o Voltar/Selecionar para o clique no touchpad",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "group": "gamepad_selection",
+          "showIf": {
+            "key": "controller",
+            "in": ["enabled"],
+            "and": [
+              { "key": "gamepad", "in": ["auto", "ds4"] }
+            ]
+          },
+          "notes": "Visibilidade como em Inputs.vue: gamepad=ds4 ou (gamepad=auto e Windows). Observação do código: windows/input.cpp 1410 só aplica o mapeamento quando gamepad == \"ds4\" (emulação manual); com 'auto' o painel mostra a opção, mas ela não tem efeito (coerente com o texto \"Ao forçar a emulação DS4\")."
+        },
+        {
+          "key": "ds5_inputtino_randomize_mac",
+          "ui": "toggle",
+          "label": "Randomizar o MAC do controle virtual",
+          "help": "Ao registrar o controle, usa um MAC aleatório em vez de um MAC baseado no índice interno do controle, para evitar misturar as configurações de controles diferentes quando eles são trocados no lado do cliente.",
+          "default": "enabled",
+          "platform": ["linux"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "group": "gamepad_selection",
+          "showIf": {
+            "key": "controller",
+            "in": ["enabled"],
+            "and": [
+              { "key": "gamepad", "in": ["auto", "ds5"] }
+            ]
+          },
+          "translatedFields": ["label", "help"],
+          "notes": "As chaves config.ds5_inputtino_randomize_mac e config.ds5_inputtino_randomize_mac_desc NÃO existem em pt_BR.json nem em en.json (o painel original mostraria a chave crua); existem só em cs/hu/vi/zh_TW. Label e help foram traduzidos desses textos. Visibilidade como em Inputs.vue: gamepad=ds5 ou (gamepad=auto e Linux). Só é lida pelo gamepad inputtino do Linux (linux/input/inputtino_gamepad.cpp 48); no Windows não tem efeito."
+        },
+        {
+          "key": "back_button_timeout",
+          "ui": "number",
+          "label": "Tempo limite de emulação do botão Início/Guia",
+          "help": "Se o botão Voltar/Selecionar for mantido pressionado pelo número especificado de milissegundos, um pressionamento do botão Início/Guia será emulado. Se definido com um valor < 0 (padrão), manter pressionado o botão Voltar/Selecionar não emulará o botão Início/Guia.",
+          "default": -1,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "max": 2147483647,
+          "step": 1,
+          "unit": "ms",
+          "placeholder": "-1",
+          "showIf": { "key": "controller", "in": ["enabled"] },
+          "notes": "No painel original é <input type=text> (placeholder -1), sem min/max; os limites vêm do C++ (config.cpp 1261-1266: int_f; qualquer inteiro é aplicado, negativo = desativado, que é o padrão -1). Sem min de propósito: valores negativos são válidos. Gravar inteiro puro (int_f não valida decimais); o valor igual ao default (-1) não precisa ser gravado."
+        }
+      ]
+    },
+    {
+      "id": "keyboard",
+      "title": "Teclado",
+      "options": [
+        {
+          "key": "keyboard",
+          "ui": "toggle",
+          "label": "Ativar entrada de teclado",
+          "help": "Permite que os convidados controlem o teclado do servidor",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "key_repeat_delay",
+          "ui": "number",
+          "label": "Atraso de repetição de tecla",
+          "help": "Controle a velocidade com que as teclas se repetirão. O atraso inicial em milissegundos antes da repetição das teclas.",
+          "default": 500,
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "number",
+          "min": 0,
+          "max": 2147483647,
+          "step": 1,
+          "unit": "ms",
+          "placeholder": "500",
+          "showIf": { "key": "keyboard", "in": ["enabled"] },
+          "notes": "Somente Windows e com teclado ativado. No painel original é <input type=text> (placeholder 500) sem min/max; C++ (config.cpp 1275-1279): int_f e só aplica se o valor for >= 0 (negativo é ignorado e fica o padrão 500 ms). Gravar inteiro puro."
+        },
+        {
+          "key": "key_repeat_frequency",
+          "ui": "number",
+          "label": "Frequência de repetição da tecla",
+          "help": "A frequência com que as teclas se repetem a cada segundo. Essa configuração aceita decimais.",
+          "default": 24.9,
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "number",
+          "min": 0,
+          "step": "any",
+          "unit": "Hz",
+          "placeholder": "24.9",
+          "showIf": { "key": "keyboard", "in": ["enabled"] },
+          "notes": "Somente Windows e com teclado ativado. Único campo desta tela que aceita decimal. No painel original é <input type=text> (placeholder 24.9) sem restrição de passo, por isso step=\"any\" (HTML) em vez de 0.1: o C++ aceita qualquer real. C++ (config.cpp 1268-1273): double_between_f na faixa [0, DBL_MAX] e só aplica se o valor for > 0 (0 é ignorado e fica o padrão 24.9 Hz). Gravar com ponto decimal (ex.: 24.9)."
+        },
+        {
+          "key": "always_send_scancodes",
+          "ui": "toggle",
+          "label": "Sempre enviar scancodes do teclado",
+          "help": "O envio dos scancodes de teclado aumenta a compatibilidade com jogos e aplicativos, mas pode resultar em entrada incorreta do teclado de determinados clientes que não estejam usando um layout de teclado em inglês dos EUA. Ative se a entrada do teclado não estiver funcionando em determinados aplicativos. Desative se as teclas do cliente estiverem gerando a entrada incorreta no servidor.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "showIf": { "key": "keyboard", "in": ["enabled"] }
+        },
+        {
+          "key": "key_rightalt_to_key_win",
+          "ui": "toggle",
+          "label": "Tecla Alt direito como tecla Windows",
+          "help": "Pode ser que você não consiga enviar a tecla Windows diretamente do cliente Moonlight. Nesses casos, pode ser útil fazer com que o R3D PLAY interprete a tecla Alt direito como a tecla Windows",
+          "default": "disabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "showIf": { "key": "keyboard", "in": ["enabled"] },
+          "notes": "Opção só da UI: no boot, se verdadeira, o C++ adiciona o mapeamento 0xA5 -> 0x5B (Alt direito -> tecla Windows) em keybindings (config.cpp 1254-1259). A chave 'keybindings' em si não tem UI no painel (comentário 'todo' em config.html) e não é modelada aqui; preservar o valor do arquivo ao salvar. Padrão do .vue: default=\"false\"."
+        }
+      ]
+    },
+    {
+      "id": "mouse",
+      "title": "Mouse",
+      "options": [
+        {
+          "key": "mouse",
+          "ui": "toggle",
+          "label": "Ativar entrada do mouse",
+          "help": "Permite que os convidados controlem o mouse do servidor",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "high_resolution_scrolling",
+          "ui": "toggle",
+          "label": "Suporte à rolagem de alta resolução",
+          "help": "Quando ativado, o R3D PLAY transmitirá os eventos de rolagem de alta resolução dos clientes Moonlight. Isso pode ser útil desativar para aplicativos mais antigos que rolam muito rápido com eventos de rolagem de alta resolução.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "showIf": { "key": "mouse", "in": ["enabled"] }
+        },
+        {
+          "key": "native_pen_touch",
+          "ui": "toggle",
+          "label": "Suporte nativo a caneta/toque",
+          "help": "Quando ativado, o R3D PLAY transmitirá os eventos nativos de caneta/toque dos clientes Moonlight. Isso pode ser útil desativar para aplicativos mais antigos sem suporte nativo a caneta/toque.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "showIf": { "key": "mouse", "in": ["enabled"] },
+          "notes": "Inputs.vue mostra esta opção em todas as plataformas (v-if só em mouse=enabled), por isso platform=null. No código desta árvore a única leitura de config::input.native_pen_touch fora de config.cpp é windows/input.cpp 1773, ou seja, na prática só tem efeito no Windows."
+        }
+      ]
+    },
+    {
+      "id": "input_only",
+      "title": "Modo de Somente Controle",
+      "options": [
+        {
+          "key": "enable_input_only_mode",
+          "ui": "toggle",
+          "label": "Ativar Modo de Somente Controle",
+          "help": "Adiciona uma entrada de Aplicativo de Somente Controle. Quando ativado, a lista de aplicativos vai mostrar somente o aplicativo em execução e a entrada de Somente Controle quando estiver transmitindo. A entrada Somente Controle não receberá imagem nem áudio. Isso é útil quando controlando o computador pela TV ou conectando periféricos que a TV não suporta.",
+          "default": "disabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        }
+      ]
+    },
+    {
+      "id": "rumble",
+      "title": "Vibração (rumble)",
+      "options": [
+        {
+          "key": "forward_rumble",
+          "ui": "toggle",
+          "label": "Encaminhar mensagens de vibração",
+          "help": "Encaminha as mensagens de vibração (rumble) para os clientes",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "translatedFields": ["label", "help"],
+          "notes": "config.forward_rumble e config.forward_rumble_desc NÃO existem em pt_BR.json nem em pt.json (o painel original cai no inglês de en.json: \"Forward Rumble Messages\" / \"Forward Rumble Messages to clients\"); label e help foram traduzidos do inglês. Só aparece no Windows (v-if platform === 'windows'); o C++ só lê a flag em windows/input.cpp 331 (false = ignora as mensagens de vibração). Padrão C++ true."
+        }
+      ]
+    }
+  ]
+}

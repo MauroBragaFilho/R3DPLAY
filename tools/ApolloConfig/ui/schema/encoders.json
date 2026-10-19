@@ -1,0 +1,399 @@
+{
+  "group": "encoders",
+  "title": "Codificadores",
+  "sections": [
+    {
+      "id": "nvenc",
+      "title": "NVIDIA NVENC",
+      "options": [
+        {
+          "key": "nvenc_preset",
+          "ui": "select",
+          "label": "Predefinição de desempenho",
+          "help": "Números mais altos melhoram a compactação (qualidade em uma determinada taxa de bits) ao custo de uma maior latência de codificação. Recomenda-se alterar somente quando limitado pela rede ou pelo decodificador; caso contrário, prefira aumentar a taxa de bits para ter maior qualidade.",
+          "default": 1,
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "number",
+          "options": [
+            { "value": "1", "label": "P1 (mais rápido, padrão)" },
+            { "value": "2", "label": "P2" },
+            { "value": "3", "label": "P3" },
+            { "value": "4", "label": "P4" },
+            { "value": "5", "label": "P5" },
+            { "value": "6", "label": "P6" },
+            { "value": "7", "label": "P7 (mais lento)" }
+          ]
+        },
+        {
+          "key": "nvenc_twopass",
+          "ui": "select",
+          "label": "Modo de duas passagens",
+          "help": "Adiciona uma passagem de codificação preliminar. Isso permite detectar mais vetores de movimento, distribuir melhor a taxa de bits pelo quadro e aderir mais rigorosamente aos limites de taxa de bits. Não é recomendável desativá-lo, pois isso pode levar a um excesso ocasional de taxa de bits e à subsequente perda de pacotes.",
+          "default": "quarter_res",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "disabled", "label": "Desativado (mais rápido, não recomendado)" },
+            { "value": "quarter_res", "label": "Resolução de um quarto (mais rápida, padrão)" },
+            { "value": "full_res", "label": "Resolução total (mais lenta)" }
+          ]
+        },
+        {
+          "key": "nvenc_spatial_aq",
+          "ui": "toggle",
+          "label": "AQ espacial",
+          "help": "Atribui valores de QP (parâmetros de quantização) mais altos a regiões planas do vídeo. Recomenda-se ativá-lo ao fazer transmissão com taxas de bits mais baixas.",
+          "default": "disabled",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "nvenc_vbv_increase",
+          "ui": "number",
+          "label": "Aumento percentual de VBV/HRD em um único quadro",
+          "help": "Por padrão, o R3D PLAY usa VBV/HRD de quadro único, o que significa que não se espera que o tamanho do quadro de vídeo codificado exceda a taxa de bits solicitada dividida pela taxa de quadros solicitada. O relaxamento dessa restrição pode ser benéfico e atuar como taxa de bits variável de baixa latência, mas também pode levar à perda de pacotes se a rede não tiver espaço no buffer para lidar com picos de taxa de bits. O valor máximo aceito é 400, o que corresponde a um limite superior de tamanho de quadro de vídeo codificado 5x maior.",
+          "default": 0,
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "number",
+          "min": 0,
+          "max": 400,
+          "step": 1,
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "nvenc_misc",
+      "title": "NVIDIA NVENC - Opções diversas",
+      "options": [
+        {
+          "key": "nvenc_realtime_hags",
+          "ui": "toggle",
+          "label": "Usar prioridade Tempo Real no escalonador GPU acelerado por hardware",
+          "help": "Atualmente, os drivers da NVIDIA podem travar no codificador quando o HAGS está ativado, a prioridade em tempo real é usada e a utilização da VRAM está próxima do máximo. A desativação dessa opção reduz a prioridade de Tempo Real para Alta, evitando o congelamento ao custo de um desempenho de captura reduzido quando a GPU está muito carregada.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "nvenc_latency_over_power",
+          "ui": "toggle",
+          "label": "Preferir uma latência de codificação menor do que a economia de energia",
+          "help": "O R3D PLAY solicita a velocidade máxima do clock da GPU durante a transmissão para reduzir a latência da codificação. Não é recomendável desativar, pois isso pode levar a um aumento significativo da latência de codificação.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "nvenc_opengl_vulkan_on_dxgi",
+          "ui": "toggle",
+          "label": "Apresentar OpenGL/Vulkan por cima do DXGI",
+          "help": "O R3D PLAY não consegue capturar programas OpenGL e Vulkan em tela cheia com taxa de quadros total, a menos que eles sejam apresentados em cima do DXGI. Essa é uma configuração de todo o sistema e que é revertida ao sair do programa R3D PLAY.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "nvenc_h264_cavlc",
+          "ui": "toggle",
+          "label": "Prefira o CAVLC ao CABAC em H.264",
+          "help": "Forma mais simples de codificação de entropia. O CAVLC precisa de cerca de 10% a mais de taxa de bits para obter a mesma qualidade. Só é relevante para dispositivos de decodificação muito antigos.",
+          "default": "disabled",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "nvenc_intra_refresh",
+          "ui": "select",
+          "label": "Intra Refresh",
+          "help": "Ativa Intra Refresh para que alguns clientes consigam continuamente renderizar corretamente (por ex. Clientes Xbox)",
+          "default": "disabled",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "disabled", "label": "Automático" },
+            { "value": "enabled", "label": "Ativado" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qsv",
+      "title": "Intel QuickSync",
+      "options": [
+        {
+          "key": "qsv_preset",
+          "ui": "select",
+          "label": "Predefinição de QuickSync",
+          "help": "",
+          "default": "medium",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "veryfast", "label": "mais rápido (qualidade mais baixa)" },
+            { "value": "faster", "label": "mais rápido (qualidade inferior)" },
+            { "value": "fast", "label": "rápido (baixa qualidade)" },
+            { "value": "medium", "label": "médio (padrão)" },
+            { "value": "slow", "label": "lento (boa qualidade)" },
+            { "value": "slower", "label": "mais lento (melhor qualidade)" },
+            { "value": "veryslow", "label": "mais lento (melhor qualidade)" }
+          ]
+        },
+        {
+          "key": "qsv_coder",
+          "ui": "select",
+          "label": "Codificador QuickSync (H264)",
+          "help": "",
+          "default": "auto",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "auto", "label": "auto -- deixa o ffmpeg decidir (padrão)" },
+            { "value": "cabac", "label": "cabac -- codificação aritmética binária adaptável ao contexto - qualidade superior" },
+            { "value": "cavlc", "label": "cavlc -- codificação de comprimento variável adaptável ao contexto - decodificação mais rápida" }
+          ]
+        },
+        {
+          "key": "qsv_slow_hevc",
+          "ui": "toggle",
+          "label": "Permitir codificação lenta de HEVC",
+          "help": "Isso pode permitir a codificação HEVC em GPUs Intel mais antigas, ao custo de maior uso da GPU e pior desempenho.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        }
+      ]
+    },
+    {
+      "id": "amd",
+      "title": "AMD AMF/VCE",
+      "options": [
+        {
+          "key": "amd_usage",
+          "ui": "select",
+          "label": "Uso do AMF",
+          "help": "Isso define o perfil de codificação básico. Todas as opções apresentadas abaixo substituirão um subconjunto do perfil de uso, mas há configurações ocultas adicionais aplicadas que não podem ser configuradas em outro lugar.",
+          "default": "ultralowlatency",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "transcoding", "label": "transcoding -- transcodificação (mais lento)" },
+            { "value": "webcam", "label": "webcam -- webcam (lento)" },
+            { "value": "lowlatency_high_quality", "label": "lowlatency_high_quality - baixa latência, alta qualidade (rápido)" },
+            { "value": "lowlatency", "label": "lowlatency - baixa latência (mais rápido)" },
+            { "value": "ultralowlatency", "label": "ultralowlatency - latência ultra baixa (mais rápido; padrão)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "amd_rc",
+      "title": "Configurações do controle de taxa AMF",
+      "options": [
+        {
+          "key": "amd_rc",
+          "ui": "select",
+          "label": "Controle de taxa AMF",
+          "help": "Isso controla o método de controle de taxa para garantir que não estamos excedendo a meta de taxa de bits do cliente. O \"cqp\" não é adequado para o direcionamento da taxa de bits, e outras opções além do \"vbr_latency\" dependem da aplicação do HRD para ajudar a restringir os excessos de taxa de bits.",
+          "default": "vbr_latency",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "cbr", "label": "cbr -- taxa de bits constante (recomendado se o HRD estiver ativado)" },
+            { "value": "cqp", "label": "cqp -- modo qp constante" },
+            { "value": "vbr_latency", "label": "vbr_latency -- taxa de bits variável com restrição de latência (recomendado se o HRD estiver desativado; padrão)" },
+            { "value": "vbr_peak", "label": "vbr_peak -- taxa de bits variável com restrição de pico" }
+          ]
+        },
+        {
+          "key": "amd_enforce_hrd",
+          "ui": "toggle",
+          "label": "Execução do Decodificador de Referência Hipotético (HRD) da AMF",
+          "help": "Aumenta as restrições do controle de taxa para atender aos requisitos do modelo HRD. Isso reduz bastante os excessos de taxa de bits, mas pode causar artefatos de codificação ou qualidade reduzida em determinadas placas.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        }
+      ]
+    },
+    {
+      "id": "amd_quality",
+      "title": "Configurações de qualidade do AMF",
+      "options": [
+        {
+          "key": "amd_quality",
+          "ui": "select",
+          "label": "Qualidade AMF",
+          "help": "Isso controla o equilíbrio entre a velocidade e a qualidade da codificação.",
+          "default": "balanced",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "speed", "label": "velocidade -- preferir velocidade" },
+            { "value": "balanced", "label": "balanced -- balanceado (padrão)" },
+            { "value": "quality", "label": "qualidade -- preferir qualidade" }
+          ]
+        },
+        {
+          "key": "amd_preanalysis",
+          "ui": "toggle",
+          "label": "Pré-análise da AMF",
+          "help": "Isso permite a pré-análise de controle de taxa, que pode aumentar a qualidade às custas de uma maior latência de codificação.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "amd_vbaq",
+          "ui": "toggle",
+          "label": "Quantização adaptativa baseada em variância AMF (VBAQ)",
+          "help": "Em geral, o sistema visual humano é menos sensível a artefatos em áreas altamente texturizadas. No modo VBAQ, a variação de pixels é usada para indicar a complexidade das texturas espaciais, permitindo que o codificador aloque mais bits para áreas mais suaves. A ativação desse recurso leva a melhorias na qualidade visual subjetiva com alguns conteúdos.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "amd_coder",
+          "ui": "select",
+          "label": "Codificador AMF (H264)",
+          "help": "Permite que você selecione a codificação de entropia para priorizar a qualidade ou a velocidade de codificação. Somente H.264.",
+          "default": "auto",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "auto", "label": "auto -- deixa o ffmpeg decidir (padrão)" },
+            { "value": "cabac", "label": "cabac -- codificação aritmética binária adaptável ao contexto - qualidade superior" },
+            { "value": "cavlc", "label": "cavlc -- codificação de comprimento variável adaptável ao contexto - decodificação mais rápida" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vt",
+      "title": "VideoToolbox",
+      "options": [
+        {
+          "key": "vt_coder",
+          "ui": "select",
+          "label": "Codificador do VideoToolbox",
+          "help": "",
+          "default": "auto",
+          "platform": ["macos"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "auto", "label": "auto -- deixa o ffmpeg decidir (padrão)" },
+            { "value": "cabac", "label": "cabac -- codificação aritmética binária adaptável ao contexto - qualidade superior" },
+            { "value": "cavlc", "label": "cavlc -- codificação de comprimento variável adaptável ao contexto - decodificação mais rápida" }
+          ]
+        },
+        {
+          "key": "vt_software",
+          "ui": "select",
+          "label": "Codificação de software VideoToolbox",
+          "help": "",
+          "default": "auto",
+          "platform": ["macos"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "auto", "label": "Automático" },
+            { "value": "disabled", "label": "Desativado" },
+            { "value": "allowed", "label": "Permitido" },
+            { "value": "forced", "label": "Forçado" }
+          ]
+        },
+        {
+          "key": "vt_realtime",
+          "ui": "toggle",
+          "label": "Codificação em tempo real do VideoToolbox",
+          "help": "",
+          "default": "enabled",
+          "platform": ["macos"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        }
+      ]
+    },
+    {
+      "id": "vaapi",
+      "title": "VA-API",
+      "options": [
+        {
+          "key": "vaapi_strict_rc_buffer",
+          "ui": "toggle",
+          "label": "Impor limites estritos de taxa de bits de quadros para H.264/HEVC em GPUs AMD",
+          "help": "A ativação dessa opção pode evitar a queda de quadros na rede durante as mudanças de cena, mas a qualidade do vídeo pode ser reduzida durante o movimento.",
+          "default": "disabled",
+          "platform": ["linux"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        }
+      ]
+    },
+    {
+      "id": "sw",
+      "title": "Software",
+      "options": [
+        {
+          "key": "sw_preset",
+          "ui": "select",
+          "label": "Predefinições de SW",
+          "help": "Otimiza o equilíbrio entre a velocidade de codificação (quadros codificados por segundo) e a eficiência da compactação (qualidade por bit no fluxo de bits). O padrão é super rápido.",
+          "default": "superfast",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "ultrafast", "label": "ultra rápido" },
+            { "value": "superfast", "label": "super rápido (padrão)" },
+            { "value": "veryfast", "label": "muito rápido" },
+            { "value": "faster", "label": "mais rápido" },
+            { "value": "fast", "label": "rápido" },
+            { "value": "medium", "label": "médio" },
+            { "value": "slow", "label": "lento" },
+            { "value": "slower", "label": "mais lento" },
+            { "value": "veryslow", "label": "muito lento" }
+          ]
+        },
+        {
+          "key": "sw_tune",
+          "ui": "select",
+          "label": "Ajustes finos do SW",
+          "help": "Opções de ajuste, que são aplicadas após a predefinição. O padrão é zerolatency.",
+          "default": "zerolatency",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "film", "label": "filme - use para conteúdo de filme de alta qualidade; reduz a desblocagem" },
+            { "value": "animation", "label": "animação -- bom para desenhos animados; usa desblocagem mais alta e mais quadros de referência" },
+            { "value": "grain", "label": "granulação -- preserva a estrutura de granulação em material de filme antigo e granulado" },
+            { "value": "stillimage", "label": "stillimage -- bom para conteúdo do tipo apresentação de slides" },
+            { "value": "fastdecode", "label": "fastdecode -- permite uma decodificação mais rápida ao desativar determinados filtros" },
+            { "value": "zerolatency", "label": "zerolatency -- bom para codificação rápida e transmissão de baixa latência (padrão)" }
+          ]
+        }
+      ]
+    }
+  ]
+}

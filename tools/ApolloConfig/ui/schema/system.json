@@ -1,0 +1,537 @@
+{
+  "group": "system",
+  "title": "Manutenção e Segurança",
+  "origem": [
+    "src_assets/common/assets/web/troubleshooting.html (rota /troubleshooting, navbar.troubleshoot = 'Solução de Problemas')",
+    "src_assets/common/assets/web/password.html (rota /password, navbar.password = 'Alterar senha')",
+    "src_assets/common/assets/web/welcome.html (rota /welcome, primeiro acesso: cria o usuário)",
+    "src_assets/common/assets/web/login.html (rota /login)",
+    "src_assets/common/assets/web/Navbar.vue",
+    "src_assets/common/assets/web/public/assets/locale/pt_BR.json (seções troubleshooting, password, welcome, login, navbar, _common)",
+    "src/confighttp.cpp (closeApp, restart, quit, resetDisplayDevicePersistence, getLogs, savePassword, login, getLocale, authenticate, send_redirect, getConfig, getApps)",
+    "complementos lidos: src/logging.cpp, src/httpcommon.cpp, src/config.cpp (log_path, credentials_file, origin_web_ui_allowed, locale, min_log_level), src/process.cpp (terminate, get_running_app_uuid, vDisplayDriverStatus), src/crypto.cpp (hash SHA-256, rand_alphabet), src/platform/windows/misc.cpp (restart), src/platform/windows/utils.cpp (charset do log), src/platform/windows/virtual_display.h (DRIVER_STATUS), src/display_device.cpp (reset_persistence), tools/sunshinesvc.cpp (serviço do Windows), third-party/Simple-Web-Server/server_http.hpp (resposta não escrita), index.html, ClientCard.vue, ResourceCard.vue, ThemeToggle.vue, locale.js e configs/tabs/AudioVideo.vue (vdisplayStatus), tools/R3D PLAYConfig/Program.cs, ui/index.html e ui/app.js (ponte nativa)"
+  ],
+  "legenda": {
+    "confirm": "Texto (PT-BR) do diálogo de confirmação, ou null quando o painel original não pergunta nada.",
+    "confirm_se_transmitindo": "Confirmação extra, só quando GET /api/apps devolve current_app diferente de vazio. Não existe no original (origem: novo).",
+    "dangerous": "true = botão em estilo de perigo; a ação não pode ser desfeita pelo próprio painel. No original todos os botões são btn-warning.",
+    "body": "Objeto enviado como JSON. POST sem dados leva {} (nunca omitir: ver regra R01).",
+    "platform": "null = todas as plataformas; 'windows' = ocultar nas demais (valor de GET /api/config -> platform).",
+    "origem_campo": "'original' = existe no painel web original; 'novo' = acrescentado pelo painel R3D PLAY.",
+    "serialize": "Só aparece em referências a chaves do sunshine.conf (ref_config e info com 'serialize'); o valor segue _serializacao.md, seção 3.1 (select/texto = 'string': a UI envia texto, mesmo quando é dígito). Este arquivo NÃO define campos de configuração próprios: a definição completa (opções, rótulos, default) fica no schema citado em 'schema'. Credenciais, ações e consultas não passam por /api/config e não têm 'serialize'.",
+    "ponte": "Todas as chamadas passam por api(method, path, obj) em ui/app.js -> native('api') -> R3D PLAYClient.SendAsync (cookie próprio, relogin automático com cred.dat em caso de 401)."
+  },
+  "screens": [
+    {
+      "id": "maintenance",
+      "tab": "maintenance",
+      "title": "Manutenção",
+      "icon": "build",
+      "origem": {
+        "pagina": "/troubleshooting",
+        "arquivo": "troubleshooting.html",
+        "navbar_key": "navbar.troubleshoot",
+        "navbar_label_original": "Solução de Problemas",
+        "titulo_original": "Solução de Problemas"
+      },
+      "absorve": "a aba 'Registro' atual (screen-logs / loadLogs em app.js): o registro passa a ser uma seção desta tela",
+      "sections": [
+        { "id": "system", "title": "Sistema", "ref": "info", "origem_campo": "novo", "nota": "O original não tem bloco de informações nesta página; versão e status do driver ficam em Início e Configuração." },
+        { "id": "actions", "title": "Ações", "ref": "actions", "ordem": ["close_app", "restart", "quit", "dd_reset"], "origem_campo": "original", "nota": "Mesma ordem do original: Forçar fechamento, Reiniciar, Encerrar, Redefinir monitor (só Windows). Cada ação é um cartão com título, descrição, alerta de resultado e um botão." },
+        { "id": "logs", "title": "Registro", "ref": "logs", "origem_campo": "original", "nota": "No original o cartão 'Logs' é o último e a âncora #logs é usada pelo alerta de erros fatais da página inicial." }
+      ]
+    },
+    {
+      "id": "security",
+      "tab": "security",
+      "title": "Segurança",
+      "icon": "lock",
+      "origem": {
+        "pagina": "/password (+ /welcome e /login, que viram a tela de entrada do painel)",
+        "arquivo": "password.html, welcome.html, login.html",
+        "navbar_key": "navbar.password",
+        "navbar_label_original": "Alterar senha",
+        "titulo_original": "Alteração de senha"
+      },
+      "sections": [
+        { "id": "password", "title": "Alterar senha", "ref": "password", "origem_campo": "original" },
+        {
+          "id": "web_access",
+          "title": "Quem pode abrir o painel web",
+          "origem_campo": "novo",
+          "ref_config": { "key": "origin_web_ui_allowed", "schema": "network.json", "default": "lan", "serialize": "string", "valores": ["pc", "lan", "wan"] },
+          "nota": "NÃO duplicar o campo: usar o mesmo item de network.json (uma única fonte da verdade, mesmo nome de chave em sunshine.conf). O padrão do servidor é 'lan' (config.cpp nvhttp_t). O app.js atual usa 'pc' quando a chave está ausente, o que mostra algo diferente do que o servidor aplica de fato. Texto sugerido para 'wan': 'Expor a interface do usuário da Web à Internet é um risco à segurança! Prossiga por sua própria conta e risco!' (config.port_warning)."
+        },
+        {
+          "id": "session",
+          "title": "Sessão neste PC",
+          "origem_campo": "novo",
+          "itens": [
+            { "id": "logout", "label": "Sair da conta", "help": "Esquece o login salvo neste PC. O painel volta a pedir usuário e senha.", "confirm": null, "dangerous": false, "native": "logout", "depende_de": "R12" }
+          ],
+          "nota": "Hoje o botão 'Sair da conta' fica em Configurações (logoutBtn). Mudar para esta tela."
+        }
+      ]
+    }
+  ],
+  "nao_portado": [
+    { "item": "Navbar.vue: links Início/PIN/Aplicativos/Configuração", "destino": "abas do painel: Início, Jogos, Dispositivos, Configurações (com o avançado dentro)", "obs": "Navbar marca o link ativo comparando document.location.pathname com o href; o painel usa botões de aba (showTab)." },
+    { "item": "Navbar.vue: ThemeToggle (menu 'Tema' com Automático / Claro / Escuro; navbar.toggle_theme e navbar.theme_*)", "destino": "nenhum", "obs": "O painel R3D tem tema próprio fixo (index.html: data-theme='dark')." },
+    { "item": "welcome.html e login.html como páginas", "destino": "overlay #auth do index.html (showAuth)", "obs": "Mesmos campos; ver chave 'auth'." },
+    { "item": "ResourceCard (cartões 'Recursos' e 'Legal') em welcome.html/index.html", "destino": "nenhum", "obs": "Recursos do projeto upstream, não do R3D PLAY. Links reais no ResourceCard.vue: GitHub Discussions, GitHub Wiki e Stuttering Clinic (cartão Recursos); Licença e Aviso de terceiros (cartão Legal). O botão do site da LizardByte está comentado no .vue (a chave resource_card.lizardbyte_website existe em pt_BR.json, mas não é exibida). Só github_discussions, legal, legal_desc, license, lizardbyte_website, resources, resources_desc e third_party_notice existem em pt_BR.json; os rótulos da Wiki e da Stuttering Clinic não existem em pt_BR.json (só em en.json e zh.json)." },
+    { "item": "ClientCard (cartão 'Clientes' em index.html)", "destino": "nenhum", "obs": "Lista os clientes Artemis (Android) e dois itens 'Coming soon...' (iOS, Desktop), com links para o GitHub do upstream. Textos em pt_BR.json (client_card.clients = 'Clientes', clients_desc, generic_moonlight_clients_desc). O R3D PLAY explica o pareamento na tela Início." },
+    { "item": "Título e descrição da página inicial (index.welcome = 'Olá, R3D PLAY!', index.description)", "destino": "nenhum", "obs": "A tela Início do painel tem cabeçalho próprio (hero)." },
+    { "item": "Navbar.vue: logotipo/link 'R3D PLAY' (./)", "destino": "marca R3D PLAY no topo do painel", "obs": "Só o logotipo do upstream; o painel usa o próprio." },
+    { "item": "Comparação de versão com as releases do GitHub (index.html)", "destino": "nenhum", "obs": "Contata api.github.com e compara com o upstream ClassicOldSong/R3D PLAY; o fork R3D tem versão própria e o aviso 'nova versão' seria sempre enganoso." },
+    { "item": "Botão/janela 'Opções avançadas' (OpenAdvanced em Program.cs, segunda WebView2 com o painel web original)", "destino": "seção Avançado dentro de Configurações (advanced.json e demais schemas)", "obs": "Ver regra R04: a segunda janela compartilha a sessão única do servidor." }
+  ],
+  "actions": [
+    {
+      "id": "close_app",
+      "label": "Forçar fechamento",
+      "help": "Se o Moonlight reclamar de um aplicativo em execução, forçar o fechamento do aplicativo deve corrigir o problema.",
+      "icon": "close",
+      "origem_campo": "original",
+      "ancora_original": "#close_apps",
+      "confirm": null,
+      "dangerous": false,
+      "platform": null,
+      "endpoint": "/api/apps/close",
+      "method": "POST",
+      "body": {},
+      "resposta": {
+        "sucesso": "HTTP 200 com JSON {\"status\":true}.",
+        "falha": "status 0 (R3D PLAY fora do ar); 401 {\"status\":false,\"error\":\"Unauthorized\"}; 400 {\"status\":false,\"error\":\"Content type not provided\"} se o corpo {} for omitido; 403 (origem não permitida); 307 (R3D PLAY sem credenciais criadas).",
+        "observacao": "O servidor devolve status:true SEMPRE, haja ou não aplicativo rodando (proc.terminate() não informa nada). A resposta não diz se algo foi fechado."
+      },
+      "mensagens": {
+        "sucesso": "Aplicativo encerrado com sucesso!",
+        "erro": "Erro ao fechar o aplicativo",
+        "duracao_ms": 5000
+      },
+      "desabilitar_enquanto": "a requisição estiver pendente (original: closeAppPressed)",
+      "interrompe_transmissao": true,
+      "depois": "Aguardar ~800 ms e reler GET /api/apps (campo current_app) para atualizar 'AO VIVO' nas telas Início e Jogos (é o que stopStream() em app.js já faz).",
+      "efeito": "proc.terminate() (process.cpp): encerra o processo e o grupo do aplicativo, executa os comandos 'undo' do prep-cmd (nos jogos do R3D, o --close-dir que fecha o jogo), reverte o HDR, remove o monitor virtual SudoVDA criado para a sessão e reverte/esquece a configuração de monitor (display_device::revert_configuration ou reset_persistence). Sem aplicativo em execução quase nada acontece (só recarrega a lista de apps.json), mas a resposta continua {\"status\":true}. Duração: o processo recebe um pedido de saída gracioso e o servidor espera até 'exit-timeout' segundos (padrão 5 s, por aplicativo, process.cpp:1356) antes de forçar; a resposta só vem depois disso, e a ponte desiste em 30 s (status 0).",
+      "notes": "É a mesma chamada do botão 'Encerrar' do cartão do jogo e do 'Encerrar transmissão' da tela inicial. O original sempre habilita o botão; o painel pode mostrar a dica 'Nenhum aplicativo em execução' quando current_app é vazio, mas sem desabilitar. O original trava o botão para sempre se o fetch falhar (closeAppPressed nunca volta a false): re-habilitar sempre num finally."
+    },
+    {
+      "id": "restart",
+      "label": "Reiniciar o R3D PLAY",
+      "help": "Se o R3D PLAY não estiver funcionando corretamente, você pode tentar reiniciá-lo. Isso encerrará todas as sessões em execução.",
+      "icon": "restart_alt",
+      "origem_campo": "original",
+      "ancora_original": "#restart",
+      "confirm": null,
+      "confirm_se_transmitindo": "Há uma transmissão em andamento. Reiniciar o R3D PLAY vai encerrá-la. Continuar?",
+      "dangerous": false,
+      "platform": null,
+      "endpoint": "/api/restart",
+      "method": "POST",
+      "body": {},
+      "resposta": {
+        "sucesso": "NENHUMA resposta: o handler faz proc.terminate() e platf::restart() (saída assíncrona) e retorna sem escrever; o Simple-Web-Server, ao destruir a resposta, envia 0 bytes, e a conexão cai quando o processo sai. Na ponte isso chega como status 0 (mensagem de erro de rede, ou timeout de 30 s). Um 200 com corpo vazio não é produzido por este código, mas tratar como 'reiniciando' também.",
+        "falha": "Só são falha imediata 400 (Content-Type ausente; esta checagem vem ANTES da autenticação), 401, 403 e 307.",
+        "observacao": "Windows: se o R3D PLAY roda com console (standalone), ele mesmo se recria via CreateProcess no atexit (misc.cpp). Se roda como serviço (caso deste PC: R3D PLAYService, sunshinesvc.exe), o processo apenas sai com código 0 e o próprio sunshinesvc.cpp o inicia de novo em até ~3 s (laço de 3 s na sessão do console); NÃO depende da recuperação automática do gerenciador de serviços."
+      },
+      "mensagens": {
+        "andamento": "O R3D PLAY está reiniciando",
+        "voltou": "R3D PLAY reiniciado.",
+        "timeout": "O R3D PLAY não voltou a responder. Abra o R3D PLAY pela bandeja do Windows ou reinicie o serviço."
+      },
+      "desabilitar_enquanto": "reiniciando ou encerrando (original: serverQuitting || serverRestarting)",
+      "interrompe_transmissao": true,
+      "depois": {
+        "descricao": "O original só mostra o alerta por 5 s fixos (serverRestarting) e, se a chamada falhar, recarrega a página após 1 s. No painel: manter o aviso até o R3D PLAY responder de novo.",
+        "poll": {
+          "endpoint": "GET /api/config",
+          "atraso_inicial_ms": 2000,
+          "intervalo_ms": 2000,
+          "limite_ms": 60000,
+          "subiu_quando": "status 200. Um 401 também indica que subiu (a sessão se perde no reinício; SendAsync já tenta relogin com cred.dat e devolve 200 se as credenciais ainda valem), assim como 307 (R3D PLAY sem usuário). Só status 0 significa 'ainda fora do ar'.",
+          "ao_voltar": "recarregar o estado da aba atual e mostrar a mensagem 'voltou'"
+        }
+      },
+      "notes": "O painel já usa /api/restart depois de salvar configurações: saveCfg chama setTimeout(boot, 4000) e ensureDefaults (dentro de boot) faz boot() esperar 8000 ms. boot() trata status 0 mostrando 'R3D PLAY desligado' e tentando de novo a cada 4 s, então o fluxo de reinício pode reutilizar esse laço."
+    },
+    {
+      "id": "quit",
+      "label": "Encerrar R3D PLAY",
+      "help": "Encerrar R3D PLAY. Isso vai encerrar todas as sessões ativas.",
+      "icon": "power_settings_new",
+      "origem_campo": "original",
+      "ancora_original": "#quit",
+      "confirm": "Você tem certeza que deseja encerrar R3D PLAY? Você não poderá iniciar R3D PLAY novamente se você não tiver outras formas de controlar o seu computador.",
+      "dangerous": true,
+      "platform": null,
+      "endpoint": "/api/quit",
+      "method": "POST",
+      "body": {},
+      "resposta": {
+        "sucesso": "A conexão cai sem resposta (na ponte: status 0 com mensagem de erro de rede). Isso É o sucesso.",
+        "falha": "HTTP 200 com corpo vazio: o servidor só escreve a resposta se o encerramento não aconteceu em 5 s (thread write_resp). O original mostra alert('Exit failed!') (texto em inglês, sem chave de tradução). Também são falha 401, 403, 307.",
+        "observacao": "O handler não valida Content-Type (só autentica), mas enviar {} mesmo assim. Windows: sem janela de console (serviço) a saída usa ERROR_SHUTDOWN_IN_PROGRESS, e o sunshinesvc.cpp, ao ver esse código, para o PRÓPRIO serviço (SERVICE_STOPPED) em vez de relançar o R3D PLAY; com console sai com código 0 e nada o reinicia. Neste PC o R3D PLAY é o serviço R3D PLAYService (início automático): depois de 'Encerrar' só volta com 'sc start R3D PLAYService' / services.msc (administrador) ou reiniciando o Windows, e o R3D PLAYConfig continua aberto mostrando 'R3D PLAY desligado'."
+      },
+      "mensagens": {
+        "andamento": "R3D PLAY está encerrando...",
+        "sucesso": "R3D PLAY encerrou.",
+        "erro": "Não foi possível encerrar o R3D PLAY."
+      },
+      "desabilitar_enquanto": "reiniciando ou encerrando (original: serverQuitting || serverRestarting)",
+      "interrompe_transmissao": true,
+      "confirm_se_transmitindo": null,
+      "depois": "Após o sucesso: o painel permanece aberto no estado 'R3D PLAY desligado' (setOnline(false)); botões de Manutenção que dependem do servidor ficam desabilitados. O painel não consegue religar o R3D PLAY (não há API). O laço de boot() a cada 4 s já detecta quando o usuário abrir o R3D PLAY de novo.",
+      "notes": "Ação sem volta pelo painel: manter a confirmação com o texto original. O alerta de resultado do original tem 2 estados: 'R3D PLAY está encerrando...' enquanto a chamada está pendente e 'R3D PLAY encerrou.' quando a conexão cai."
+    },
+    {
+      "id": "dd_reset",
+      "label": "Redefinir Configurações do Monitor Persistente",
+      "help": "Se o R3D PLAY estiver preso tentando restaurar as configurações alteradas do monitor, você pode redefinir as configurações e prosseguir para restaurar o estado do monitor manualmente.",
+      "icon": "monitor",
+      "origem_campo": "original",
+      "ancora_original": "#dd_reset",
+      "confirm": null,
+      "dangerous": false,
+      "platform": "windows",
+      "endpoint": "/api/reset-display-device-persistence",
+      "method": "POST",
+      "body": {},
+      "resposta": {
+        "sucesso": "HTTP 200 com JSON {\"status\":true}.",
+        "falha": "HTTP 200 com JSON {\"status\":false} (a redefinição falhou) ou os erros comuns (status 0, 401, 400, 403, 307).",
+        "observacao": "status:true também quando a plataforma não tem suporte a display device (display_device::reset_persistence assume sucesso). Mesmo com sucesso, o monitor NÃO é restaurado: a persistência é só esquecida e agendadores são parados; o usuário restaura o monitor manualmente (Configurações de vídeo do Windows)."
+      },
+      "mensagens": {
+        "sucesso": "Sucesso ao redefinir a persistência!",
+        "erro": "Erro ao redefinir a persistência!",
+        "duracao_ms": 5000
+      },
+      "desabilitar_enquanto": "a requisição estiver pendente (original: ddResetPressed)",
+      "interrompe_transmissao": false,
+      "notes": "O original só renderiza o cartão se platform === 'windows' (platform vem de /api/config); a descrição é renderizada com white-space: pre-line. O R3D PLAY é só Windows, mas manter a checagem. Mesmo problema de botão travado do close_app se o fetch falhar."
+    }
+  ],
+  "logs": {
+    "title": "Registro",
+    "titulo_original": "Logs",
+    "help": "Veja os logs carregados pelo R3D PLAY",
+    "endpoint": "/api/logs",
+    "method": "GET",
+    "body": null,
+    "formato": {
+      "resposta": "HTTP 200, text/plain; charset=<página de código ANSI (GetACP) do Windows do processo do R3D PLAY: windows-1250..1258, GBK, EUC-KR, Big5, Shift_JIS, UTF-8 ou UTF-16 conforme utils.cpp; qualquer outra vira ISO-8859-1>. Neste PC o ACP é 1252, então vem windows-1252. Sem autenticação válida: 401 JSON (não texto).",
+      "corpo": "O arquivo de log INTEIRO a cada chamada (sunshine.log; caminho pela chave log_path, padrão <appdata>/sunshine.log). Sem paginação, sem 'tail', sem filtro no servidor. Arquivo ausente ou vazio = corpo vazio.",
+      "registro": "[AAAA-MM-DD HH:MM:SS.mmm]: Nível: mensagem  (hora local do PC)",
+      "regex_registro": "^\\[(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3})\\]: (Verbose|Debug|Info|Warning|Error|Fatal): ",
+      "continuacao": "Linhas que não casam com a regex pertencem ao registro anterior (mensagens com várias linhas, por exemplo os JSON de dispositivos de vídeo). No sunshine.log real deste PC: 259 linhas de registro e 280 de continuação.",
+      "codificacao_e_quebras": "O arquivo real é gravado em UTF-8 estrito (apesar do charset declarado: o sunshine.log deste PC traz 'DARK SOULS™' em bytes UTF-8, que decodificado como windows-1252 viraria 'â„¢') e usa CRLF como quebra de linha. Por isso decodificar UTF-8 primeiro (ver R11) e dividir por /\\r?\\n/ para não deixar '\\r' no fim das linhas; o original divide só por '\\n'.",
+      "niveis": [
+        { "value": "Verbose", "rank": 0, "label": "Verboso", "min_log_level": "0" },
+        { "value": "Debug", "rank": 1, "label": "Depuração", "min_log_level": "1" },
+        { "value": "Info", "rank": 2, "label": "Informação", "min_log_level": "2" },
+        { "value": "Warning", "rank": 3, "label": "Advertência", "min_log_level": "3" },
+        { "value": "Error", "rank": 4, "label": "Erro", "min_log_level": "4" },
+        { "value": "Fatal", "rank": 5, "label": "Fatal", "min_log_level": "5" }
+      ],
+      "rotacao": "A cada início o R3D PLAY renomeia o log atual para <log>.backup (uma única geração, sobrescrita) e abre um arquivo novo. A API só expõe o arquivo atual.",
+      "corte_por_nivel": "O filtro min_log_level (chave de general.json, 'Nível do log') vale também para o ARQUIVO: linhas abaixo do nível configurado nunca são gravadas."
+    },
+    "atualizacao": {
+      "original": "setInterval de 5000 ms, mais uma chamada imediata ao abrir. O texto inicial é 'Loading...'. O timer nunca é limpo (o hook beforeDestroy não existe no Vue 3).",
+      "painel": {
+        "ao_abrir": true,
+        "intervalo_ms": 5000,
+        "somente_aba_visivel": true,
+        "limpar_timer_ao_sair_da_aba": true,
+        "botao_atualizar": { "label": "Atualizar", "icon": "refresh", "existe_hoje": true },
+        "rolagem": "Ir ao fim na primeira carga e continuar no fim enquanto o usuário não rolar para cima; o original não rola sozinho.",
+        "vazio": "Sem registros."
+      }
+    },
+    "filtros": {
+      "buscar": {
+        "origem_campo": "original",
+        "ui": "campo de texto à direita da descrição",
+        "placeholder": "Procurar...",
+        "largura_px": 300,
+        "semantica_original": "Substring, sensível a maiúsculas e minúsculas (indexOf), aplicada linha a linha em this.logs.split('\\n'); só as linhas que contêm o texto permanecem. Não mantém linhas de continuação nem o cabeçalho do registro.",
+        "semantica_painel": "Igual (por linha), mas sem diferenciar maiúsculas e minúsculas. Sem debounce necessário (filtragem local)."
+      },
+      "copiar": {
+        "origem_campo": "original",
+        "ui": "botão-ícone (fa-copy) no canto superior direito da caixa de log",
+        "o_que_copia": "O texto FILTRADO que está na tela (actualLogs), não o arquivo inteiro.",
+        "api": "navigator.clipboard.writeText",
+        "feedback_original": "nenhum",
+        "painel": { "label": "Copiar", "icon": "content_copy", "toast_ok": "Copiado", "toast_erro": "Não foi possível copiar", "existe_hoje": true }
+      },
+      "nivel": {
+        "origem_campo": "novo",
+        "nota": "O original NÃO tem filtro por nível na página de solução de problemas. Níveis só aparecem como (a) configuração 'Nível do log' (min_log_level) e (b) o alerta de erros fatais da página inicial, que lê o log com a regex acima e lista as linhas de nível Fatal.",
+        "ui": "chips de seleção única: Todos | Advertência ou pior | Erro ou pior | Fatal",
+        "padrao": "Todos",
+        "regra": "Mostrar o registro quando rank >= rank escolhido; linhas de continuação seguem o registro anterior (herdam a decisão). Conta de ocorrências por nível ao lado de cada chip é opcional.",
+        "limite": "Só filtra o que está no arquivo (ver corte_por_nivel). Para ver Depuração/Verboso é preciso mudar 'Nível do log' em Configurações > Geral e reiniciar; oferecer atalho para esse campo."
+      }
+    },
+    "ui": {
+      "caixa": "fonte monospace de 16 px, white-space: pre, rolagem própria, altura fixa de 500 px no original (min e max); no painel pode usar a altura disponível.",
+      "ordem_original": "descrição + campo de busca na mesma linha, caixa abaixo"
+    },
+    "notes": "Charset: neste PC o ACP é 1252 e o R3D PLAY declara charset=windows-1252. Testado isoladamente com .NET 8: ReadAsStringAsync lança InvalidOperationException ('The character set provided in ContentType is invalid') para windows-1252, e o app não registra CodePagesEncodingProvider. Em R3D PLAYClient.SendAsync a leitura do corpo fica fora do try, então OnMessageAsync devolve {error} sem status/body e a aba Registro mostra 'Sem registros.'. Correção na ponte: para /api/logs ler os bytes (ReadAsByteArrayAsync) e decodificar com UTF-8 estrito, caindo para o charset declarado (Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)) só se os bytes não forem UTF-8 válido. O original decodifica sempre pelo charset do cabeçalho (TextDecoder)."
+  },
+  "password": {
+    "title": "Alterar senha",
+    "titulo_original": "Alteração de senha",
+    "endpoint": "/api/password",
+    "method": "POST",
+    "autenticacao": "Exige sessão válida quando já existe usuário (authenticate: origem do IP, depois cookie; 401 antes de validar o Content-Type); sem usuário (primeiro acesso) é liberado, inclusive para IPs que origin_web_ui_allowed bloquearia. Content-Type application/json é obrigatório nos dois casos.",
+    "campos": [
+      { "grupo": "Credenciais atuais", "key": "currentUsername", "label": "Nome de Usuário", "type": "text", "required": true, "autocomplete": "username", "autocomplete_origem": "novo", "origem_campo": "original", "nota": "O input original não tem atributo autocomplete; 'username' é sugestão para o painel." },
+      { "grupo": "Credenciais atuais", "key": "currentPassword", "label": "Senha", "type": "password", "required": true, "required_original": false, "autocomplete": "current-password", "origem_campo": "original", "nota": "O input original não tem 'required', mas o servidor recusa senha atual errada; no painel marcar como obrigatório." },
+      { "grupo": "Novas credenciais", "key": "newUsername", "label": "Nome de Usuário", "type": "text", "required": false, "help": "Se não for especificado, o nome de usuário não será alterado", "origem_campo": "original" },
+      { "grupo": "Novas credenciais", "key": "newPassword", "label": "Senha", "type": "password", "required": true, "autocomplete": "new-password", "origem_campo": "original" },
+      { "grupo": "Novas credenciais", "key": "confirmNewPassword", "label": "Confirmar senha", "type": "password", "required": true, "autocomplete": "new-password", "origem_campo": "original" }
+    ],
+    "layout": "Dois blocos lado a lado (md-6) dentro de um cartão: 'Credenciais atuais' à esquerda e 'Novas credenciais' à direita; botão 'Salvar' abaixo. No painel empilhar em telas estreitas.",
+    "botao": { "label": "Salvar", "icon": "key" },
+    "body": {
+      "currentUsername": "<texto>",
+      "currentPassword": "<texto>",
+      "newUsername": "<texto ou vazio>",
+      "newPassword": "<texto>",
+      "confirmNewPassword": "<texto>"
+    },
+    "validacoes": {
+      "cliente_original": [
+        "currentUsername, newPassword e confirmNewPassword com atributo required (validação nativa do formulário).",
+        "newPassword !== confirmNewPassword -> erro 'Password mismatch' (texto fixo em inglês, sem chave pt_BR) e NÃO envia a requisição."
+      ],
+      "cliente_painel": [
+        "Campos obrigatórios acima, incluindo currentPassword.",
+        "Nova senha igual à confirmação -> 'As senhas não são iguais.'.",
+        "Opcional: avisar (sem bloquear) se a nova senha tiver menos de 8 caracteres. O servidor não impõe tamanho mínimo nem complexidade."
+      ],
+      "servidor": [
+        "newUsername vazio -> usa currentUsername digitado (com a MESMA caixa de letras que o usuário digitou). Se currentUsername também vier vazio -> erro 'Invalid Username'.",
+        "Usuário atual comparado sem diferenciar maiúsculas/minúsculas (boost::iequals); senha atual comparada pelo hash SHA-256(senha + salt) em sunshine_state.json (chave 'password').",
+        "newPassword vazia ou diferente de confirmNewPassword -> 'Password Mismatch'.",
+        "Usuário/senha atuais incorretos -> 'Invalid Current Credentials'."
+      ]
+    },
+    "resposta": {
+      "sucesso": "HTTP 200 com JSON {\"status\":true}.",
+      "erro": "HTTP 400 com JSON {\"status_code\":400,\"status\":false,\"error\":\"<texto em inglês>\"}. O original só lê o JSON quando o HTTP é 200 e exibe 'Internal Server Error' em qualquer outro caso, escondendo o motivo real.",
+      "erros_traduzidos": [
+        { "error": "Invalid Current Credentials", "http": 400, "texto": "Usuário ou senha atuais incorretos." },
+        { "error": "Password Mismatch", "http": 400, "texto": "As senhas não são iguais." },
+        { "error": "Invalid Username", "http": 400, "texto": "Informe o nome de usuário." },
+        { "error": "Content type not provided / Content type mismatch", "http": 400, "texto": "Erro interno do painel (cabeçalho da requisição). Atualize o painel." },
+        { "error": "(mensagem de exceção JSON, ex.: parse error)", "http": 400, "texto": "O R3D PLAY não entendeu o pedido. Tente de novo." },
+        { "error": "Unauthorized", "http": 401, "texto": "Sessão expirada. Entre de novo." },
+        { "error": "(sem corpo)", "http": 403, "texto": "Este endereço não tem permissão para abrir o painel web (veja 'Quem pode abrir o painel web')." },
+        { "error": "(redirecionamento)", "http": 307, "texto": "O R3D PLAY ainda não tem usuário. Crie o acesso na tela de entrada." },
+        { "error": "(sem resposta)", "http": 0, "texto": "O R3D PLAY não está respondendo." }
+      ],
+      "prefixo_erro_original": "<b>Error: </b> fixo no password.html (a welcome.html usa _common.error = 'Erro!')"
+    },
+    "mensagens": {
+      "sucesso_titulo_original": "Sucesso!",
+      "sucesso_original": "A senha foi alterada com sucesso! Esta página será recarregada em breve e seu navegador solicitará as novas credenciais.",
+      "sucesso_painel": "Senha alterada. O painel já entrou de novo com a nova senha."
+    },
+    "efeito": {
+      "credenciais": "Gravadas em credentials_file (padrão: sunshine_state.json, o mesmo arquivo dos dispositivos pareados, que são preservados) como username, salt novo de 16 caracteres e SHA-256(senha + salt). Recarregadas em memória na hora: NÃO precisa reiniciar o R3D PLAY.",
+      "sessao": "SIM, invalida a sessão: sessionCookie.clear() ('force re-login'). Vale para TODOS os clientes, inclusive o painel que fez a troca. A resposta de sucesso da própria chamada ainda é entregue; a chamada seguinte recebe 401.",
+      "redirecionamento_original": "O servidor não redireciona. A página original espera 5 s e faz document.location.reload(); o GET seguinte recebe 307 para /login?redir=./password.",
+      "no_painel": "Depois de status:true, chamar native('login', { user: <newUsername ou currentUsername>, pass: <newPassword> }) na hora: refaz a sessão e regrava cred.dat com as credenciais novas. Se falhar, ver R05. NÃO usar native('logout') e NÃO recarregar a página."
+    },
+    "primeiro_acesso": {
+      "descricao": "Mesmo endpoint, sem sessão e sem credenciais atuais; só funciona enquanto o R3D PLAY ainda não tem usuário (config::sunshine.username vazio).",
+      "body": { "newUsername": "apollo", "newPassword": "<texto>", "confirmNewPassword": "<texto>" },
+      "nota": "A welcome.html pré-preenche newUsername com 'apollo'. Se o usuário apagar o nome e o servidor não tiver currentUsername, a resposta é 400 'Invalid Username'. O painel (showAuth(true)) já manda esse corpo, repetindo a senha digitada em newPassword e confirmNewPassword depois de conferir o campo 'Repita a senha'."
+    }
+  },
+  "auth": {
+    "login": {
+      "endpoint": "/api/login",
+      "method": "POST",
+      "body": { "username": "<texto>", "password": "<texto>" },
+      "campos_original": [
+        { "key": "username", "label": "Nome de Usuário", "required": true, "autocomplete": "username", "autofocus": true },
+        { "key": "password", "label": "Senha", "required": true, "autocomplete": "password" },
+        { "key": "savePassword", "label": "Lembrar senha", "type": "checkbox", "origem_campo": "original" }
+      ],
+      "titulo_original": "Bem-vindo ao R3D PLAY! (welcome.greeting), com o logotipo do R3D PLAY",
+      "botao_original": "Login",
+      "botao_desabilitado_enquanto": "a requisição estiver pendente (loading)",
+      "resposta": {
+        "sucesso": "HTTP 200 sem corpo e cabeçalho Set-Cookie: auth=<64 caracteres>; Secure; SameSite=Strict; Max-Age=2592000; Path=/",
+        "falha": "401 sem corpo (usuário/senha errados); 400 JSON se faltar Content-Type; 403 se o IP não é permitido por origin_web_ui_allowed; 500 em exceção. Usuário sem diferenciar maiúsculas; senha diferenciando."
+      },
+      "sessao": "Um único cookie GLOBAL no servidor (sessionCookie): fazer login em qualquer cliente derruba o anterior. Expira em 15 dias (SESSION_EXPIRE_DURATION; o Max-Age do cookie diz 30) e some quando o R3D PLAY reinicia. Não há limite de tentativas.",
+      "mensagens_original": {
+        "401": "Please check your username and password (inglês fixo)",
+        "outro": "Server returned <status> (inglês fixo)",
+        "prefixo": "Login failed: <mensagem>",
+        "sucesso": "Essa página vai recarregar automaticamente em breve."
+      },
+      "mensagens_painel": {
+        "401": "Usuário ou senha incorretos.",
+        "0": "O R3D PLAY não está respondendo.",
+        "outro": "Não foi possível entrar (erro <status>)."
+      },
+      "lembrar_senha": "O original guarda {username,password} em texto puro no localStorage ('login'). NÃO portar: o painel já guarda as credenciais com DPAPI (cred.dat, escopo do usuário do Windows) e entra sozinho."
+    },
+    "primeiro_acesso": {
+      "como_detectar": "Com o R3D PLAY sem usuário, TODA rota autenticada (inclusive /api/*) responde 307 Temporary Redirect com Location: /welcome. Tratar qualquer status 3xx como 'precisa criar o acesso' (ver R06).",
+      "tela_original": {
+        "titulo": "Bem-vindo ao R3D PLAY!",
+        "texto": "Antes de começar, precisamos que você crie um novo nome de usuário e senha para acessar a interface do usuário da Web.",
+        "alerta": "As credenciais abaixo são necessárias para acessar a interface de usuário da Web do R3D PLAY. Mantenha-as em segurança, pois você nunca mais as verá!",
+        "campos": ["Nome de Usuário (padrão 'apollo')", "Senha", "Confirmar senha"],
+        "botao": "Login",
+        "botao_desabilitado_enquanto": "a requisição estiver pendente (loading)",
+        "erro_prefixo": "Erro! (_common.error); mesmas mensagens fixas em inglês de password.html ('Password mismatch', 'Internal Server Error') e o error do servidor",
+        "sucesso": "Sucesso! (_common.success) + 'Esta página será recarregada em breve e seu navegador solicitará as novas credenciais' (welcome.welcome_success); o original recarrega a página após 5 s",
+        "ao_lado": "ResourceCard (ver nao_portado)"
+      },
+      "no_painel": "Overlay #auth com título 'Criar acesso' e botão 'Criar e entrar' (já existe). Fluxo: POST /api/password (corpo do primeiro acesso) e, se status:true, native('login'). GET /welcome redireciona para / quando já há usuário; GET /login redireciona para /welcome quando não há."
+    },
+    "redir_original": "login.html aceita ?redir=<caminho> e só segue se começar com '.'; sem sentido no painel nativo (não há URLs)."
+  },
+  "info": [
+    {
+      "key": "version",
+      "label": "Versão do R3D PLAY",
+      "endpoint": "GET /api/config",
+      "campo": "version",
+      "tipo": "texto (PROJECT_VERSION do build)",
+      "mostrado_no_original": "index.html, título 'Version <x>'",
+      "como_obter": "r.json.version",
+      "nota": "Um número com 5 partes contendo 'dirty' indica build local; o original mostra então 'Obrigado por ajudar a tornar o R3D PLAY um software melhor!'. Não comparar com GitHub (ver nao_portado)."
+    },
+    {
+      "key": "platform",
+      "label": "Sistema operacional",
+      "endpoint": "GET /api/config",
+      "campo": "platform",
+      "tipo": "enum",
+      "valores": { "windows": "Windows", "linux": "Linux", "macos": "macOS" },
+      "mostrado_no_original": "não é exibido; usado para esconder cartões e opções (troubleshooting.html esconde 'Redefinir Configurações do Monitor Persistente' fora do Windows)",
+      "como_obter": "r.json.platform"
+    },
+    {
+      "key": "vdisplayStatus",
+      "label": "Driver de tela virtual (SudoVDA)",
+      "endpoint": "GET /api/config",
+      "campo": "vdisplayStatus",
+      "tipo": "inteiro; só existe no Windows (ausente nas demais plataformas)",
+      "valores": {
+        "0": { "texto": "Pronto", "nivel": "ok" },
+        "1": { "texto": "Desconhecido", "nivel": "aviso" },
+        "-1": { "texto": "Não inicializado", "nivel": "aviso" },
+        "-2": { "texto": "Versão incompatível", "nivel": "aviso" },
+        "-3": { "texto": "Falha no watchdog", "nivel": "aviso" }
+      },
+      "mostrado_no_original": "Configuração > Áudio/Vídeo (AudioVideo.vue): caixa 'SudoVDA Driver status: <texto>' (verde se 0, amarela nos demais), em inglês fixo",
+      "texto_aviso": "Verifique se o driver SudoVDA está instalado na versão mais recente e ativado corretamente.",
+      "como_obter": "r.json.vdisplayStatus (comparar como número: === 0 é pronto; no original o valor inicial é a string '1' enquanto carrega)",
+      "nota": "Enum do servidor (VDISPLAY::DRIVER_STATUS): OK=0, UNKNOWN=1, FAILED=-1, VERSION_INCOMPATIBLE=-2, WATCHDOG_FAILED=-3. O rótulo do original para -1 é 'Uninitialized'. O tradutor 'Não inicializado' é novo."
+    },
+    {
+      "key": "locale",
+      "label": "Idioma da interface web original",
+      "endpoint": "GET /api/configLocale",
+      "campo": "locale",
+      "tipo": "texto (ex.: en, pt_BR); padrão 'en'; aceita só os 22 idiomas de string_restricted_f (config.cpp:1320), outro valor é ignorado",
+      "serialize": "string",
+      "default": "en",
+      "schema": "general.json",
+      "mostrado_no_original": "não é exibido; locale.js usa para carregar a tradução (r.locale ?? 'en')",
+      "como_obter": "r.json.locale. Esta rota NÃO autentica, NÃO exige Content-Type e não é filtrada por origem. Resposta: {\"status\":true,\"locale\":\"...\"}.",
+      "nota": "Baixa relevância: o painel R3D é fixo em PT-BR. A chave de configuração 'locale' (general.json) só afeta a janela web original."
+    },
+    {
+      "key": "host_name",
+      "label": "Nome do servidor",
+      "endpoint": "GET /api/apps",
+      "campo": "host_name",
+      "tipo": "texto (chave sunshine_name; o padrão do servidor é o nome do PC)",
+      "mostrado_no_original": "não nesta página",
+      "origem_campo": "novo",
+      "como_obter": "r.json.host_name (também r.json.host_uuid)"
+    },
+    {
+      "key": "current_app",
+      "label": "Transmissão em andamento",
+      "endpoint": "GET /api/apps",
+      "campo": "current_app",
+      "tipo": "uuid do aplicativo em execução, ou texto vazio",
+      "mostrado_no_original": "não nesta página (apps.html marca o aplicativo em execução)",
+      "origem_campo": "novo",
+      "como_obter": "r.json.current_app; o nome vem de r.json.apps[].name com o mesmo uuid",
+      "nota": "Usar para habilitar a dica de 'Forçar fechamento' e para confirm_se_transmitindo."
+    },
+    {
+      "key": "startup_errors",
+      "label": "Erros ao iniciar",
+      "endpoint": "GET /api/logs",
+      "campo": "linhas do log com nível Fatal",
+      "tipo": "lista de textos",
+      "mostrado_no_original": "index.html: caixa vermelha com o texto 'Atenção! A R3D PLAY detectou esses erros durante a inicialização. RECOMENDAMOS FORTEMENTE corrigi-los antes da transmissão.' (index.startup_errors, contém <b>), a lista das mensagens e o botão 'View Logs' que leva a /troubleshooting#logs",
+      "como_obter": "dividir o texto pela regex_registro de 'logs' e manter os registros em que o nível é Fatal; valor = mensagem sem o prefixo de hora. O original (index.html fancyLogs) divide por /(\\[data hora]):\\s/ e mostra 'v.value' = tudo depois da hora, ou seja, COM o prefixo 'Fatal: ' e com as linhas de continuação; o painel pode tirar o 'Fatal: '. O original lê o log com response.text() (UTF-8), sem usar o charset do cabeçalho.",
+      "nota": "Escapar o HTML das mensagens antes de exibir. O link vira um atalho para a seção Registro com o chip 'Fatal' já selecionado."
+    },
+    {
+      "key": "min_log_level",
+      "label": "Nível mínimo do log",
+      "endpoint": "GET /api/config",
+      "campo": "min_log_level",
+      "tipo": "texto; ausente do arquivo quando nunca foi definida (padrão 2, Informação, config.cpp sunshine_t). O painel original grava a string '0'..'6' ao escolher uma opção e só omite a chave se o valor ainda for o número 2 do default em memória.",
+      "serialize": "string",
+      "default": 2,
+      "schema": "general.json",
+      "valores": ["0 ou verbose", "1 ou debug", "2 ou info", "3 ou warning", "4 ou error", "5 ou fatal", "6 ou none"],
+      "rotulos_pt_BR": { "0": "Verboso", "1": "Depuração", "2": "Informação", "3": "Advertência", "4": "Erro", "5": "Fatal", "6": "Nenhum" },
+      "rotulos_fonte": "pt_BR.json config.log_level (Nível do log), log_level_0..6 e log_level_desc (O nível mínimo do log impresso na saída padrão)",
+      "mostrado_no_original": "Configuração > Geral",
+      "origem_campo": "novo",
+      "como_obter": "r.json.min_log_level; aceitar tanto o nome quanto o dígito (config.cpp aceita os dois). general.json grava dígitos.",
+      "nota": "Mostrar junto ao Registro: linhas abaixo deste nível não existem no arquivo."
+    },
+    {
+      "key": "network",
+      "label": "Endereços deste PC",
+      "endpoint": "native('info')",
+      "campo": "host, ips[{name, ip, kind}], url",
+      "tipo": "objeto devolvido pela ponte nativa (Program.cs): host = Environment.MachineName; ips = interfaces ativas, sem loopback, VirtualBox/VMware/Hyper-V/vEthernet nem 169.254.x; kind ∈ wifi, lan, tailscale (100.64-127.x), vpn (26.x); url = endereço do painel web (padrão https://localhost:47990)",
+      "mostrado_no_original": "não existe; já usado na tela Início (ipChips)",
+      "origem_campo": "novo",
+      "como_obter": "await native('info')",
+      "nota": "Opcional em Manutenção; não duplicar a lógica."
+    }
+  ],
+  "rules": [
+    { "id": "R01", "titulo": "POST sempre com corpo JSON", "regra": "validateContentType() exige Content-Type: application/json em closeApp, restart, resetDisplayDevicePersistence, savePassword e login, senão responde 400 'Content type not provided'. SendAsync só põe esse cabeçalho quando o corpo não é null, e api(method, path) sem o 3º argumento envia body null. Chamar sempre api('POST', path, {}). Exceção: /api/quit não valida o tipo, mas mandar {} igual. Ordem no servidor: nas rotas POST acima a validação do Content-Type vem ANTES da autenticação (sem o cabeçalho a resposta é 400 mesmo sem sessão, não 401/307); em /api/password, quando já existe usuário, é o contrário (401 antes de 400)." },
+    { "id": "R02", "titulo": "Sem resposta também é resposta", "regra": "restart e quit derrubam a conexão (restart nem escreve resposta; quit só escreve após 5 s se falhar). Na ponte isso é status 0. Em /api/quit, status 0 = SUCESSO e HTTP 200 vazio = FALHA (o inverso do usual). Em /api/restart, status 0 (na prática o único caso) ou 200 = 'reiniciando'. Nunca mostrar 'erro de rede' nesses dois casos." },
+    { "id": "R03", "titulo": "Botões nunca podem ficar travados", "regra": "No original closeAppPressed e ddResetPressed só voltam a false dentro do .then do JSON; se o fetch falhar, ou vier HTML (redirecionamento) e r.json() lançar, o botão fica desabilitado para sempre. Usar try/finally. Restart e Encerrar bloqueiam um ao outro enquanto qualquer um estiver em andamento." },
+    { "id": "R04", "titulo": "Sessão única no servidor", "regra": "sessionCookie é uma string global: o login de qualquer cliente invalida todos os outros, e reiniciar o R3D PLAY ou trocar a senha também zeram a sessão. O painel nativo se recupera com relogin automático (401 -> cred.dat), mas dois clientes alternando se derrubam em ciclo, por exemplo o painel e a janela 'Opções avançadas' (OpenAdvanced abre o painel web original com login próprio). Embutir o avançado no painel elimina a segunda janela e esse conflito." },
+    { "id": "R05", "titulo": "Trocar a senha pode 'dar certo' sem gravar", "regra": "savePassword ignora o retorno de save_user_creds e reload_user_creds: se o arquivo de credenciais não puder ser gravado (permissão), o servidor ainda responde {status:true} e ainda zera a sessão, mas a senha antiga continua valendo. Depois do status:true, chamar native('login') com a senha NOVA; se falhar, tentar com a antiga e avisar: 'O R3D PLAY disse que salvou, mas a senha não mudou. Provável falta de permissão no arquivo de credenciais; abra o R3D PLAY como administrador e tente de novo.' Se nenhuma funcionar, mostrar a tela de entrada." },
+    { "id": "R06", "titulo": "Primeiro acesso responde 307, não 302/303", "regra": "send_redirect usa StatusCode::redirection_temporary_redirect (307). boot() em ui/app.js só testa 302 e 303, então com o R3D PLAY sem usuário o painel não mostra a tela 'Criar acesso' e segue como se estivesse tudo certo. Trocar por qualquer 3xx (status >= 300 && status < 400). AllowAutoRedirect já está desligado na ponte." },
+    { "id": "R07", "titulo": "Erros de /api/password vêm em HTTP 400 com JSON", "regra": "Ler json.error e traduzir pela tabela de password.resposta.erros_traduzidos. O original só olha o JSON quando o HTTP é 200 e mostra 'Internal Server Error' nos demais casos. As mensagens fixas em inglês do original ('Password mismatch', 'Error:', 'Exit failed!', 'Loading...', 'Internal Server Error', 'Please check your username and password', 'Server returned N', 'Login failed:', 'SudoVDA Driver status', 'Please ensure SudoVDA driver is installed...', 'View Logs', 'Version <x>') não existem em pt_BR.json: o painel usa os textos deste arquivo." },
+    { "id": "R08", "titulo": "Depois de trocar a senha, atualizar o cred.dat", "regra": "A troca invalida a sessão e deixa o cred.dat (DPAPI) com a senha velha: a próxima chamada recebe 401, o relogin automático falha e o painel fica sem acesso. native('login', {user, pass}) refaz a sessão E grava o cred.dat novo. Se newUsername ficou vazio, usar o currentUsername digitado (é o que o servidor grava, com a mesma caixa de letras). Não usar native('logout'), que apaga o cred.dat." },
+    { "id": "R09", "titulo": "Nome de usuário: caixa e vazio", "regra": "A comparação do usuário é sem diferenciar maiúsculas (iequals), a da senha diferencia. Digitar 'ADMIN' como usuário atual e deixar o novo vazio regrava o usuário como 'ADMIN'. O painel não sabe o usuário salvo (a ponte nunca devolve o cred.dat); sugestão: native('whoami') devolvendo SÓ o usuário (nunca a senha) para pré-preencher e travar currentUsername." },
+    { "id": "R10", "titulo": "Logs: arquivo inteiro e só da sessão atual", "regra": "Cada GET /api/logs lê o arquivo todo. Atualizar a cada 5 s apenas com a aba visível e parar o timer ao sair. O log é rotacionado a cada início: reiniciar o R3D PLAY 'limpa' o Registro e o log anterior fica só em <log>.backup, que a API não expõe (para investigar uma queda, o painel teria de ler esse arquivo por comando nativo). Linhas abaixo de min_log_level nunca chegam ao arquivo." },
+    { "id": "R11", "titulo": "Charset do log quebra a leitura na ponte", "regra": "O R3D PLAY declara charset=windows-1252 (ACP do Windows) em /api/logs. Em .NET 8 sem CodePagesEncodingProvider, ReadAsStringAsync lança InvalidOperationException (reproduzido em teste isolado; este PC tem ACP 1252 e o app não registra o provider). Como a leitura está fora do try em SendAsync, a aba Registro cai em 'Sem registros.'. Ler bytes e decodificar (UTF-8 estrito primeiro, depois o charset declarado). Reproduzido de novo na revisão com .NET 8.0.301: charset=windows-1252 lança InvalidOperationException; charset=ISO-8859-1 e UTF-8 funcionam. O sunshine.log real é UTF-8 válido (contém '™'), logo UTF-8 estrito acerta antes de qualquer charset. Vale também para a leitura do log usada no alerta de erros fatais." },
+    { "id": "R12", "titulo": "'Sair da conta' hoje não sai", "regra": "native('logout') só apaga o cred.dat; o CookieContainer do HttpClient continua com o cookie válido, então depois de location.reload() o boot() recebe 200 e o painel entra de novo sem pedir senha, até o app ser fechado. Para o botão funcionar, a ponte deve também descartar o cookie (novo CookieContainer ou HttpClient) e o painel chamar showAuth(false)." },
+    { "id": "R13", "titulo": "/api/config mistura metadados com opções", "regra": "GET /api/config devolve status, platform, version e vdisplayStatus junto com as chaves do sunshine.conf (todas como TEXTO, só as que estão no arquivo; ausente = padrão). Antes de qualquer POST /api/config, remover esses quatro campos (ui/app.js já faz) e SEMPRE fazer GET, mesclar a mudança e enviar tudo: saveConfig reescreve o arquivo inteiro apenas com as chaves não vazias, e o que faltar no corpo é apagado. Vale para min_log_level, origin_web_ui_allowed e locale, se as telas de Manutenção/Segurança editarem algum deles." },
+    { "id": "R14", "titulo": "Redefinir monitor não restaura o monitor", "regra": "reset_persistence() esquece o estado salvo e para os agendadores; o usuário precisa restaurar a tela manualmente. Retorna true mesmo quando a plataforma não suporta (assume sucesso) e {status:false} quando falha. Só Windows." },
+    { "id": "R15", "titulo": "Encerrar não tem volta pelo painel", "regra": "Depois de /api/quit não existe API para religar. Como serviço do Windows (R3D PLAYService), a saída usa ERROR_SHUTDOWN_IN_PROGRESS e o sunshinesvc.cpp responde parando o próprio serviço (não relança o R3D PLAY). Manter a confirmação com o texto original e o estilo de perigo; depois mostrar 'R3D PLAY desligado' e não ficar tentando ações que dependem do servidor." },
+    { "id": "R16", "titulo": "Reiniciar pode não voltar", "regra": "Com console (standalone) o R3D PLAY se recria sozinho (atexit + CreateProcess); como serviço o próprio sunshinesvc.exe o relança em até ~3 s, sem depender da recuperação automática do gerenciador de serviços (tools/sunshinesvc.cpp). Se não responder em 60 s mostrar a mensagem de timeout (ex.: o serviço foi parado, o R3D PLAY travou na saída ou não há sessão de console ativa para o serviço iniciar o processo). O reinício encerra o aplicativo em execução (proc.terminate(), que espera até exit-timeout, 5 s por padrão) e zera a sessão (relogin automático na ponte)." },
+    { "id": "R17", "titulo": "Acesso ao painel web é restrito por origem", "regra": "Todas as rotas passam por checkIPOrigin: origin_web_ui_allowed = pc/lan/wan, padrão do servidor 'lan'. IP fora da regra recebe 403 sem corpo. O painel nativo usa https://localhost:47990 e nunca é bloqueado, mas mudar isso para 'pc' derruba qualquer outro navegador na rede, e 'wan' expõe o login sem limite de tentativas. Agravante: com 'wan' E upnp ativo (opção 'Permitir jogar fora de casa'), o R3D PLAY também abre no roteador a porta TCP do painel web (porta base + 1, 47990 por padrão; upnp.cpp:87), publicando o login na Internet. Ao escolher 'wan', mostrar o aviso config.port_warning." },
+    { "id": "R18", "titulo": "Primeiro acesso é aberto", "regra": "Enquanto não houver usuário, POST /api/password dispensa sessão e senha atual: quem alcançar a porta primeiro define o acesso. Pior: sem usuário, nem GET /welcome nem POST /api/password passam por checkIPOrigin (authenticate só é chamado em savePassword quando já existe usuário), então origin_web_ui_allowed não protege essa janela. Criar o acesso logo na primeira abertura do painel e não adiar essa etapa." },
+    { "id": "R19", "titulo": "Fonte de ícones embutida", "regra": "Os ícones são Material Symbols Rounded da pasta fonts (460 KB). VERIFICADO na revisão (largura da ligadura medida em navegador com a fonte do projeto; um nome inexistente mede 13 vezes mais): build, lock, key, restart_alt, power_settings_new, monitor, close, content_copy, search, refresh, settings, logout, stop, info, warning e delete renderizam como glifo único. Se um ícone novo for adicionado, repetir o teste." },
+    { "id": "R20", "titulo": "Avançado dentro das telas", "regra": "Esta tela não depende da janela 'Opções avançadas'. As opções avançadas entram em Configurações via advanced.json (e demais schemas, com o campo 'advanced'). Atalhos desta tela para Configurações: 'Nível do log' (min_log_level, general.json) e 'Origens permitidas' (origin_web_ui_allowed, network.json). Ao salvar essas chaves, aplicar R13 e reiniciar o R3D PLAY (R02/R16)." }
+  ]
+}

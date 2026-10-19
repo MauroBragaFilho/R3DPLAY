@@ -13,10 +13,13 @@ namespace ApolloConfig;
 /// <summary>Fala com a API do Apollo (https://localhost) com sessão própria e login automático.</summary>
 internal sealed class ApolloClient {
   private HttpClient http;
-  private readonly string baseUrl;
+  private string baseUrl;
   private static readonly string CredFile = Path.Combine(DataDir, "cred.dat");
 
   public static string DataDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ApolloConfig");
+
+  /// <summary>Pasta do WebView2 (cache da interface). R3D_WEBVIEW_DIR (só para testes) separa a de uma janela de desenvolvimento da instalada.</summary>
+  public static string WebViewDir => Environment.GetEnvironmentVariable("R3D_WEBVIEW_DIR") is { Length: > 0 } d ? d : DataDir;
 
   public ApolloClient(string baseUrl) {
     this.baseUrl = baseUrl.TrimEnd('/');
@@ -31,6 +34,17 @@ internal sealed class ApolloClient {
     };
     return new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
   }
+
+  /// <summary>O servidor voltou em outra porta (chave "port" do sunshine.conf): o painel web fica em porta + 1.</summary>
+  public void Rebase(int port) {
+    var url = $"https://localhost:{port + 1}";
+    if (!string.Equals(url, baseUrl, StringComparison.OrdinalIgnoreCase)) baseUrl = url;
+  }
+
+  public string BaseUrl => baseUrl;
+
+  /// <summary>Só o nome de usuário guardado (nunca a senha): a interface pré-preenche "usuário atual".</summary>
+  public string? SavedUser() => LoadCredentials() is var (u, _) ? u : null;
 
   /// <summary>Descarta o cookie de sessão (sair da conta): o HttpClient guardaria o cookie antigo.</summary>
   public void ResetSession() {
@@ -120,10 +134,22 @@ internal sealed class MainForm : Form {
     BackColor = Color.Black;
     Controls.Add(web);
     Load += async (_, _) => await InitAsync();
+    FormClosing += async (_, e) => {
+      // Fechar a janela com alterações não salvas numa tela (Configurações, Dispositivos): pergunta antes de perder.
+      if (closeConfirmed || e.CloseReason != CloseReason.UserClosing || web.CoreWebView2 == null) return;
+      e.Cancel = true;
+      var dirty = false;
+      try { dirty = await web.CoreWebView2.ExecuteScriptAsync("!!(window.__r3dDirty && window.__r3dDirty())") == "true"; } catch { /* página indisponível: fecha */ }
+      if (dirty && MessageBox.Show(this, "Há alterações que ainda não foram salvas. Se fechar agora, elas serão perdidas." + Environment.NewLine + Environment.NewLine + "Fechar mesmo assim?", Title,
+            MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) return;
+      closeConfirmed = true;
+      Close();
+    };
   }
+  private bool closeConfirmed;
 
   private async Task InitAsync() {
-    env = await CoreWebView2Environment.CreateAsync(null, ApolloClient.DataDir);
+    env = await CoreWebView2Environment.CreateAsync(null, ApolloClient.WebViewDir);
     await web.EnsureCoreWebView2Async(env);
     var core = web.CoreWebView2;
     core.Settings.AreDevToolsEnabled = false;
@@ -159,6 +185,13 @@ internal sealed class MainForm : Form {
           api.ClearCredentials();
           api.ResetSession();
           result = new JsonObject { ["ok"] = true };
+          break;
+        case "whoami":   // só o usuário (nunca a senha)
+          result = new JsonObject { ["user"] = api.SavedUser() };
+          break;
+        case "rebase":   // o servidor mudou de porta: o painel web passa a ser porta + 1
+          api.Rebase(m["port"]?.GetValue<int>() ?? 47989);
+          result = new JsonObject { ["ok"] = true, ["url"] = api.BaseUrl };
           break;
         case "hasCreds":
           result = new JsonObject { ["ok"] = api.HasCredentials };
@@ -197,7 +230,7 @@ internal sealed class MainForm : Form {
           break;
         }
         case "info":
-          result = new JsonObject { ["host"] = Environment.MachineName, ["ips"] = LocalAddresses(), ["url"] = startUrl };
+          result = new JsonObject { ["host"] = Environment.MachineName, ["ips"] = LocalAddresses(), ["url"] = api.BaseUrl, ["dataDir"] = ApolloClient.DataDir };
           break;
         case "advanced":
           OpenAdvanced();
@@ -272,7 +305,8 @@ internal static class Program {
       Environment.ExitCode = SteamLauncher.Launch(args[1], args[2]);
       return;
     }
-    using var mutex = new Mutex(true, "ApolloConfigWindow", out var first);
+    // R3D_ALLOW_MULTI=1 (só para testes de desenvolvimento) deixa abrir uma segunda janela ao lado da que já está aberta.
+    using var mutex = new Mutex(true, Environment.GetEnvironmentVariable("R3D_ALLOW_MULTI") == "1" ? "ApolloConfigWindow-dev" : "ApolloConfigWindow", out var first);
     if (!first) return;  // já aberto
     var url = args.Length > 0 ? args[0] : "https://localhost:47990";
     ApplicationConfiguration.Initialize();

@@ -1,0 +1,213 @@
+{
+  "group": "network",
+  "title": "Rede e arquivos",
+  "sections": [
+    {
+      "id": "network",
+      "title": "Rede",
+      "options": [
+        {
+          "key": "upnp",
+          "ui": "toggle",
+          "label": "UPnP",
+          "help": "Configurar automaticamente o redirecionamento de portas para transmissão pela Internet",
+          "default": "disabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "Checkbox.vue recebe default=\"false\" e por isso exibe, logo abaixo do rotulo, o texto 'Padrão: desmarcado' (_common.disabled_def_cbox); derivar de default. Leitor C++: bool_f (config.cpp:1314), padrao false; se verdadeiro, inverte flags[UPNP]."
+        },
+        {
+          "key": "address_family",
+          "ui": "select",
+          "label": "Tipo de Endereço IP",
+          "help": "Definir os tipos de endereços IP usados pelo R3D PLAY",
+          "default": "ipv4",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "ipv4", "label": "Somente IPv4" },
+            { "value": "both", "label": "IPv4+IPv6" }
+          ],
+          "notes": "Leitor C++: string_restricted_f (config.cpp:1311) aceita somente ipv4 e both (outro valor e ignorado); padrao do motor ipv4."
+        },
+        {
+          "key": "port",
+          "ui": "number",
+          "label": "Porta",
+          "help": "Definir a família de portas usadas pelo R3D PLAY",
+          "default": 47989,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "min": 1029,
+          "max": 65514,
+          "step": 1,
+          "placeholder": "47989",
+          "notes": "Porta base P (HTTP do Moonlight). Valor efetivo para os calculos abaixo: P = port informado, ou 47989 quando vazio (no Network.vue original effectivePort = +config.port, entao o campo limpo vira 0 e a tabela mostra valores absurdos; aqui usar 47989, que e o que o motor aplica, pois o servidor descarta string vazia e config.cpp usa o padrao 47989). O parser (config.cpp) aceita 1019..65514 (1024 + PORT_HTTPS(-5) .. 65535 - RTSP_SETUP_PORT(21)); o painel original usa min=1029 e max=65514. Abaixo do campo o painel original mostra: (1) alerta perigo 'O R3D PLAY não pode usar portas abaixo de 1024!' (config.port_alert_1) quando P-5 < 1024; (2) alerta perigo 'As portas acima de 65535 não estão disponíveis!' (config.port_alert_2) quando P+21 > 65535; (3) tabela com cabecalhos 'Protocolo' (config.port_protocol) / 'Porta' (config.port_port) / 'Observação' (config.port_note) e linhas: TCP (config.port_tcp) = P-5 (HTTPS, sem nota); TCP = P com nota info 'Use essa porta para se conectar ao Moonlight.' (config.port_http_port_note) exibida somente se P != 47989; TCP = P+1 com nota 'UI da Web' (config.port_web_ui); TCP = P+21 (RTSP, sem nota); UDP (config.port_udp) = (P+9) - (P+11) (video, controle, audio; sem nota); (4) alerta aviso 'Expor a interface do usuário da Web à Internet é um risco à segurança! Prossiga por sua própria conta e risco!' (config.port_warning) quando origin_web_ui_allowed == 'wan'. A linha de microfone (UDP P+13) esta comentada no original e nao deve ser exibida."
+        },
+        {
+          "key": "origin_web_ui_allowed",
+          "ui": "select",
+          "label": "Origens permitidas para acesso da UI da Web",
+          "help": "Onde na rede o usuário é deve estar para possuir acesso à interface de usuário da Web",
+          "default": "lan",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "pc", "label": "Somente o localhost pode acessar a interface do usuário da Web" },
+            { "value": "lan", "label": "Somente as pessoas na LAN podem acessar a interface do usuário da Web" },
+            { "value": "wan", "label": "Qualquer pessoa pode acessar interface de usuário da Web" }
+          ],
+          "notes": "Valores aceitos pelo parser: pc, lan, wan (qualquer outro e ignorado). Quando 'wan' esta selecionado o painel original exibe, junto ao campo port, o alerta aviso config.port_warning (texto exato descrito em notes de 'port')."
+        },
+        {
+          "key": "external_ip",
+          "ui": "text",
+          "label": "IP externo",
+          "help": "Se nenhum endereço IP externo for fornecido, o R3D PLAY detectará automaticamente o IP externo",
+          "default": "",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "123.456.789.12",
+          "notes": "Leitor C++: string_f (config.cpp:1224) grava em config::nvhttp.external_ip. Nesta arvore de fontes (src/) nenhum outro arquivo consome esse valor (grep por external_ip so acha config.cpp/config.h), entao hoje o campo e lido mas nao tem efeito observavel; mantido por existir no painel original. Evitar '#' (trunca o valor no .conf)."
+        },
+        {
+          "key": "lan_encryption_mode",
+          "ui": "select",
+          "label": "Modo de criptografia da LAN",
+          "help": "Isso determina quando a criptografia será usada durante a transmissão pela rede local. A criptografia pode reduzir o desempenho da transmissão, principalmente em servidores e clientes menos potentes.",
+          "default": 0,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "options": [
+            { "value": "0", "label": "Desativado (padrão)" },
+            { "value": "1", "label": "Ativado para clientes compatíveis" },
+            { "value": "2", "label": "Necessário para todos os clientes" }
+          ],
+          "notes": "Valores numericos 0/1/2 (parser: int entre 0 e 2). Os values das opcoes sao strings como no <option> original; o default em config.html e o numero 0, entao comparar por String(). Gravado no sunshine.conf como numero puro (ex.: lan_encryption_mode = 1)."
+        },
+        {
+          "key": "wan_encryption_mode",
+          "ui": "select",
+          "label": "Modo de criptografia WAN",
+          "help": "Isso determina quando a criptografia será usada durante a transmissão pela Internet. A criptografia pode reduzir o desempenho da transmissão, principalmente em servidores e clientes menos potentes.",
+          "default": 1,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "options": [
+            { "value": "0", "label": "Desativado" },
+            { "value": "1", "label": "Ativado para clientes compatíveis (padrão)" },
+            { "value": "2", "label": "Necessário para todos os clientes" }
+          ],
+          "notes": "Valores numericos 0/1/2 (parser: int entre 0 e 2). Os values das opcoes sao strings como no <option> original; o default em config.html e o numero 1, entao comparar por String(). Gravado no sunshine.conf como numero puro."
+        },
+        {
+          "key": "ping_timeout",
+          "ui": "number",
+          "label": "Tempo limite de ping",
+          "help": "Quanto tempo esperar, em milissegundos, pelos dados do Moonlight antes de encerrar a transmissão",
+          "default": 10000,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "min": -1,
+          "max": 2147483647,
+          "step": 1,
+          "unit": "ms",
+          "placeholder": "10000",
+          "notes": "No painel original e um <input type=text> sem min/max; os limites vem do parser (int_between_f -1..INT_MAX). O valor -1 e ignorado pelo parser (mantem o padrao de 10 s)."
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "title": "Arquivos de configuração",
+      "options": [
+        {
+          "key": "file_apps",
+          "ui": "text",
+          "label": "Arquivo de aplicativos",
+          "help": "O arquivo em que são armazenados os aplicativos atuais do R3D PLAY.",
+          "default": "",
+          "engineDefault": "apps.json",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "apps.json",
+          "notes": "Painel original: <input type=text>, default \"\" (vazio nao e gravado). Leitor C++: path_f (config.cpp:1247, funcao em 749): caminho relativo e resolvido dentro da pasta de dados do R3D PLAY (platf::appdata(), a mesma onde fica o sunshine.conf) e os diretorios pai sao criados; vazio = padrao do motor (apps.json nessa pasta). Evitar '#' e quebras de linha no valor."
+        },
+        {
+          "key": "credentials_file",
+          "ui": "text",
+          "label": "Arquivo de credenciais",
+          "help": "Armazenar o nome de usuário/senha separadamente do arquivo de estado do R3D PLAY.",
+          "default": "",
+          "engineDefault": "sunshine_state.json",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "sunshine_state.json",
+          "notes": "Painel original: <input type=text>, default \"\". Leitor C++: path_f (config.cpp:1222). Quando vazio o motor usa o MESMO arquivo de 'file_state' (config.cpp:1221 copia nvhttp.file_state antes de ler esta chave), por isso o padrao efetivo acompanha file_state. Caminho relativo vai para a pasta de dados do R3D PLAY. Evitar '#' e quebras de linha."
+        },
+        {
+          "key": "log_path",
+          "ui": "text",
+          "label": "Caminho do arquivo de log",
+          "help": "O arquivo em que os logs atuais do R3D PLAY são armazenados.",
+          "default": "",
+          "engineDefault": "sunshine.log",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "sunshine.log",
+          "notes": "Painel original: <input type=text>, default \"\". Leitor C++: path_f (config.cpp:1217); padrao do motor = sunshine.log na pasta de dados do R3D PLAY. Caminho relativo vai para essa pasta. O log e aberto no boot (logging::init), entao a mudanca so vale apos Aplicar. Evitar '#' e quebras de linha."
+        },
+        {
+          "key": "pkey",
+          "ui": "text",
+          "label": "Chave privada",
+          "help": "A chave privada usada para a interface do usuário da Web e o pareamento do cliente Moonlight. Para melhor compatibilidade, essa deve ser uma chave privada RSA-2048.",
+          "default": "",
+          "engineDefault": "credentials/cakey.pem",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "/dir/pkey.pem",
+          "notes": "Painel original: <input type=text>, default \"\". Leitor C++: path_f (config.cpp:1214); padrao do motor = credentials/cakey.pem (PRIVATE_KEY_FILE) dentro da pasta de dados do R3D PLAY. Caminho relativo vai para essa pasta. Usado pelos servidores HTTPS (nvhttp.cpp e confighttp.cpp). Evitar '#' e quebras de linha."
+        },
+        {
+          "key": "cert",
+          "ui": "text",
+          "label": "Certificado",
+          "help": "O certificado usado para a interface Web e o emparelhamento do cliente Moonlight. Para melhor compatibilidade, ele deve ter uma chave pública RSA-2048.",
+          "default": "",
+          "engineDefault": "credentials/cacert.pem",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "/dir/cert.pem",
+          "notes": "Painel original: <input type=text>, default \"\". Leitor C++: path_f (config.cpp:1215); padrao do motor = credentials/cacert.pem (CERTIFICATE_FILE) dentro da pasta de dados do R3D PLAY. Caminho relativo vai para essa pasta. Usado pelos servidores HTTPS (nvhttp.cpp e confighttp.cpp). Evitar '#' e quebras de linha."
+        },
+        {
+          "key": "file_state",
+          "ui": "text",
+          "label": "Arquivo de estado",
+          "help": "O arquivo em que são armazenados o estado atual do R3D PLAY",
+          "default": "",
+          "engineDefault": "sunshine_state.json",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "sunshine_state.json",
+          "notes": "Painel original: <input type=text>, default \"\". Leitor C++: path_f (config.cpp:1218); padrao do motor = sunshine_state.json na pasta de dados do R3D PLAY (clientes pareados, uniqueid etc., lido/gravado em nvhttp.cpp). Caminho relativo vai para essa pasta. Se 'credentials_file' estiver vazio, ele herda este caminho. Evitar '#' e quebras de linha."
+        }
+      ]
+    }
+  ]
+}

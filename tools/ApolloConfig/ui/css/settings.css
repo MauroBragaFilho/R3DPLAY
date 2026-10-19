@@ -1,0 +1,141 @@
+/* Tela Configurações (js/views/settings.js). Classes com prefixo .st-; usa os componentes de components.css e as variáveis de style.css. */
+
+.st-screen { gap: 14px; }
+.st-banners { display: flex; flex-direction: column; gap: 8px; }
+.st-banners:empty { display: none; }
+.st-banners .banner, .st-panel > .banner { clip-path: var(--clip); align-items: center; }
+.st-grow { flex: 1; min-width: 0; }
+.st-banners .btn, .st-panel > .banner .btn { flex-shrink: 0; }
+
+/* Barra do topo: busca + Essenciais/Todas */
+.st-toolbar { gap: 16px; justify-content: flex-start; }
+.st-search { flex: 1 1 320px; max-width: 520px; padding-right: 6px; }
+.st-search input[type=search]::-webkit-search-cancel-button { display: none; }
+.st-search:focus-within { box-shadow: inset 0 -2px 0 var(--cyan); }   /* o input não tem borda: o foco aparece na caixa toda */
+.st-search .st-clear { width: 26px; height: 26px; flex-shrink: 0; background: transparent; color: var(--dim); }
+.st-search .st-clear:hover { color: #fff; background: var(--accent); }
+.st-mode { display: flex; align-items: center; gap: 10px; }
+
+/* Menu lateral e painel */
+.st-split { align-items: start; }
+.st-nav button { font-size: 13px; }
+.st-nav button .ms { font-size: 20px; color: var(--cyan); }
+.st-nav .count { min-width: 18px; text-align: right; }
+.st-nav button.active .count { color: var(--cyan); }
+.st-panel { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.st-cathead h2 { text-transform: uppercase; letter-spacing: .5px; font-size: 20px; }
+.st-cathead .muted:empty { display: none; }
+/* texto da busca colado (URL, caminho) não pode estourar a largura */
+.st-cathead p, .st-panel .empty p { overflow-wrap: anywhere; }
+.st-panel .empty { min-width: 0; }
+.st-loading { display: flex; flex-direction: column; gap: 14px; }
+
+/* Seções e campos */
+.st-section { display: flex; flex-direction: column; }
+.st-fields { display: flex; flex-direction: column; gap: 22px; }
+.st-field { position: relative; padding-left: 12px; min-width: 0; }
+.st-field.st-dirty { box-shadow: inset 3px 0 0 var(--warn); }
+.st-field.st-inactive { opacity: .62; }
+.st-field.st-flash { animation: st-flash 2.2s var(--ease); }
+@keyframes st-flash { from { background: rgba(45,226,230,.22); } to { background: transparent; } }
+.st-child { margin-left: 14px; border-left: 1px solid var(--line); }
+.st-child.st-d2 { margin-left: 28px; }
+.st-textblock { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* o <label> global é uma coluna; aqui o rótulo é uma linha com selos */
+.st-field label.f-label { flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.st-adv { font-size: 11px; }
+.st-unsaved { background: rgba(255,176,46,.16); color: var(--warn); font-size: 11px; }
+/* o selo do components.css ("alterado") parecia "mexi e não salvei": aqui significa só "diferente do padrão" */
+.st-screen .st-field.default-changed .f-label::after { content: 'diferente do padrão'; font-size: 11px; letter-spacing: .4px; text-transform: none; }
+.st-control { max-width: 560px; min-width: 0; }
+.st-control input, .st-control select { width: 100%; }
+.st-control .seg { max-width: 100%; }
+.st-control .st-number { max-width: 280px; }
+.st-field.st-wide .st-control { max-width: none; }
+.st-switch { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.st-state { min-width: 64px; text-align: right; font: 12px var(--mono); text-transform: uppercase; letter-spacing: 1px; color: var(--dim); }
+.st-state.on { color: var(--cyan); }
+.st-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 18px; }
+/* textos de apoio: --faint tem pouco contraste (3:1) para letra pequena */
+.st-screen .f-hint { color: var(--dim); }
+.st-meta .f-hint { font-size: 12px; }
+.st-screen input::placeholder { color: var(--dim); }
+.btn.st-restore { padding: 4px 10px; font-size: 11px; letter-spacing: .6px; }
+.btn.st-restore .ms { font-size: 16px; }
+.btn.st-copy { padding: 3px 10px; font-size: 10px; margin-left: 4px; }
+.btn.st-copy .ms { font-size: 15px; }
+.st-notes { display: flex; flex-direction: column; gap: 6px; }
+.st-notes:empty { display: none; }
+.st-notes .banner { padding: 8px 12px; font-size: 12px; clip-path: var(--clip); align-items: center; }
+.st-searchinfo { display: flex; flex-direction: column; gap: 2px; }
+.st-advnote { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--warn); }
+.st-advnote.muted { color: var(--dim); }
+.st-advnote .ms { font-size: 16px; }
+
+/* Portas e blocos de código */
+.st-ports summary { cursor: pointer; color: var(--cyan); font-size: 12px; padding: 4px 0; }
+.st-ports .table { margin-top: 6px; max-width: 540px; }
+.st-code { margin: 0; padding: 8px 12px; background: var(--input); clip-path: var(--clip); font: 12px/1.5 var(--mono); color: var(--text); white-space: pre-wrap; word-break: break-all; }
+.st-codebox { display: flex; gap: 8px; align-items: flex-start; max-width: 560px; }
+.st-codebox .st-code { flex: 1; min-width: 0; }
+.st-broken { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.st-broken .banner { align-self: stretch; }
+
+/* Grupos recolhíveis (accordion do schema) */
+.st-section details.fold.st-group { background: rgba(8,11,19,.5); }
+.st-group > summary { padding: 12px 16px; }
+.st-group > .fold-body { padding: 8px 16px 18px; gap: 22px; }
+.st-vd { margin-bottom: 14px; clip-path: var(--clip); align-items: center; }
+
+/* Listas de comandos e remapeamento */
+.st-cmd, .st-remap { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.st-cmd-list { display: flex; flex-direction: column; gap: 10px; }
+.st-cmd-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 12px; background: rgba(8,11,19,.5); clip-path: var(--clip); }
+.st-cmd-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 14px; min-width: 0; }
+.st-remap-fields { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.st-cmd-cell { gap: 4px; font-size: 12px; min-width: 0; }
+.st-cmd-colname { display: flex; align-items: center; gap: 6px; color: var(--dim); font: 600 11px var(--font-body); }
+.st-cmd-colname .ms { font-size: 16px; color: var(--cyan); }
+.st-cmd-check { align-self: end; padding-bottom: 8px; font-size: 12px; }
+.st-cmd-rowbtns { display: flex; gap: 6px; padding-top: 18px; }
+.st-cmd-rowbtns .icon-btn { background: var(--input); }
+.st-cmd-rowbtns .icon-btn:hover { background: var(--accent); }
+.st-cmd-cell.invalid input { box-shadow: inset 0 -2px 0 var(--accent); }
+.st-cmd-empty { margin: 0; }
+.st-cmd-actions { margin-top: 2px; }
+.st-remap-info p { margin: 0 0 6px; }
+
+/* Barra de alterações: components.css a deixa 32px acima do rodapé (o sticky respeita o padding do .content) e, em janela estreita, mais larga que a tela */
+.st-savebar { bottom: -32px; }
+.st-save-msg.bad { color: #ff8c99; }
+.st-save-note { color: var(--warn); }
+.st-savebar .btn .ms { font-size: 18px; }
+.st-sb-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.st-sb-icon { display: inline-flex; flex-shrink: 0; }
+.st-sb-text { color: var(--white); overflow-wrap: anywhere; }
+.st-sb-pending { border-top-color: var(--warn); }
+.st-sb-pending .st-sb-icon { color: var(--warn); }
+.st-sb-restarting { border-top-color: var(--cyan); }
+.st-sb-failed { border-top-color: var(--accent); }
+.st-sb-failed .st-sb-icon { color: #ff8c99; }
+.st-sb-done { border-top-color: var(--ok); }
+.st-sb-done .st-sb-icon { color: var(--ok); }
+/* o aviso (toast) fixo no canto cobria os botões Salvar: com a barra à vista ele sobe */
+body:has(#screen-settings:not([hidden]) .st-savebar:not([hidden])) #toasts { bottom: 96px; }
+
+/* Foco do teclado: os botões têm canto chanfrado (clip-path), que corta o contorno de fora; aqui ele fica por dentro */
+.st-nav button:focus-visible, .st-screen .btn:focus-visible, .st-screen .icon-btn:focus-visible, .st-screen .seg button:focus-visible,
+.st-group > summary:focus-visible, .st-ports summary:focus-visible, .st-screen .switch input:focus-visible + .track { outline-offset: -3px; }
+
+@media (max-width: 900px) {
+  .st-nav button { padding: 8px 12px; }
+  .st-search { flex-basis: 100%; max-width: none; }
+  .st-savebar { margin: 8px -16px -18px; padding: 12px 16px; bottom: -18px; }
+  body:has(#screen-settings:not([hidden]) .st-savebar:not([hidden])) #toasts { bottom: 150px; }
+}
+@media (max-width: 720px) {
+  .st-cmd-row { grid-template-columns: 1fr; }
+  .st-cmd-rowbtns { padding-top: 0; }
+  .field.row { flex-wrap: wrap; }
+  .st-switch { align-self: flex-start; }
+}

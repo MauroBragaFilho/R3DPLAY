@@ -1,0 +1,141 @@
+/* Estilos da tela devices (arquivo do módulo js/views/devices.js). Use os componentes de components.css e as variáveis de style.css.
+   Todas as classes próprias começam com dv-. */
+.dv-grow { flex: 1; min-width: 0; }
+.dv-intro { display: flex; flex-direction: column; gap: 10px; }
+.dv-intro .muted { margin: 0; }
+.dv-screen .section-title { margin: 0; }
+
+/* ---- Cartão de pareamento ---- */
+.dv-pair.dv-flash { animation: dv-flash 1.4s var(--ease); }
+@keyframes dv-flash { from { background: rgba(45,226,230,.22); } to { background: var(--card); } }
+.dv-pair .subtabs { margin-bottom: 18px; }
+.dv-panel { display: flex; flex-direction: column; gap: 16px; }
+.dv-panel[hidden] { display: none; }
+.dv-pair-form { display: flex; flex-direction: column; gap: 16px; }
+.dv-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: dvstep; }
+.dv-steps li { display: flex; align-items: baseline; gap: 12px; counter-increment: dvstep; }
+.dv-steps li::before { content: counter(dvstep); flex: 0 0 22px; text-align: center; font: 700 12px var(--mono); color: var(--cyan); background: var(--input); clip-path: var(--clip); padding: 2px 0; }
+.dv-fields { display: grid; grid-template-columns: 150px minmax(180px, 1fr) minmax(240px, 1.2fr); gap: 16px 20px; align-items: start; }
+.dv-otp .dv-fields { grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.2fr); }
+.dv-pin-input { text-align: center; letter-spacing: 10px; font: 700 24px var(--mono); padding-left: 24px; width: 100%; }
+.dv-pin-input::placeholder { letter-spacing: 10px; }
+.dv-form-actions { margin: 0; }
+.dv-status:empty { display: none; }
+.dv-status .banner { align-items: center; }
+.dv-warn { margin-top: 18px; }
+
+/* ---- QR code / OTP ---- */
+.dv-otp { display: flex; flex-direction: column; gap: 16px; }
+.dv-otp > .muted { margin: 0; }
+.dv-otp-result { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; border-top: 1px solid var(--line); }
+.dv-otp-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: start; }
+.dv-otp-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dv-otp-label { font: 700 11px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--cyan); }
+.dv-otp-code { font: 700 56px/1 var(--mono); letter-spacing: 16px; color: var(--white); text-shadow: 0 0 18px rgba(255,38,64,.45); padding-left: 4px; }
+.dv-otp-time { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 13px; }
+.dv-otp-time .ms { font-size: 18px; color: var(--cyan); }
+.dv-countdown { font: 700 15px var(--mono); color: var(--white); }
+.dv-link { font-size: 12px; }
+.dv-host-opts { background: var(--input); clip-path: var(--clip); }
+.dv-host-opts > summary { cursor: pointer; padding: 10px 16px; font-size: 12px; color: var(--dim); }
+.dv-host-opts > summary:hover { color: var(--text); }
+.dv-host-grid { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 14px; padding: 4px 16px 16px; align-items: start; }
+.dv-host-grid .field > select, .dv-host-grid .field > input { background: var(--card); }
+.dv-qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 260px; text-align: center; }
+.dv-qr { width: min(240px, 60vw); aspect-ratio: 1; background: #fff; clip-path: var(--clip-big); display: grid; place-items: center; }
+.dv-qr-svg { display: block; width: 100%; height: 100%; }
+.dv-qr .f-error { padding: 12px; color: #a01020; }
+
+/* ---- Lista ---- */
+.dv-list-head { margin-top: 6px; }
+.dv-list-head .section-title { margin: 0; }
+.dv-count { color: var(--dim); font: 12px var(--mono); }
+.dv-list { display: flex; flex-direction: column; gap: 18px; }
+.dv-state { display: flex; flex-direction: column; gap: 14px; }
+.dv-state .banner { align-items: center; }
+.dv-skel { height: 120px; clip-path: var(--clip); }
+.dv-empty { padding: 36px 20px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dv-empty p { margin: 0; }
+.dv-empty .btn { margin-top: 14px; }
+/* components.css (.empty .ms) faz todo ícone dentro de .empty virar grande e cinza: o do botão volta ao normal */
+.dv-empty .btn .ms { display: inline-block; font-size: 20px; margin: 0; color: inherit; }
+
+/* ---- Cartão de um dispositivo ---- */
+.dv-card { display: flex; flex-direction: column; gap: 16px; }
+.dv-card.dirty { box-shadow: inset 3px 0 0 var(--warn); }
+.dv-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.dv-phone { width: 44px; height: 44px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); clip-path: var(--clip); flex-shrink: 0; }
+.dv-phone .ms { font-size: 26px; }
+.dv-title { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
+.dv-name { width: 100%; clip-path: none; background: transparent; border-bottom: 2px solid var(--line); padding: 6px 4px; font: 700 17px var(--font-title); color: var(--white); }
+.dv-name { text-overflow: ellipsis; }
+.dv-name::placeholder { color: var(--dim); }
+.dv-name:hover { border-bottom-color: var(--faint); }
+.dv-name:focus { border-bottom-color: var(--cyan); }
+.dv-name-hint { margin-top: 2px; }
+.dv-name-hint.warn { color: var(--warn); }
+.dv-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.dv-access { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.dv-f-model { flex: 1; min-width: 260px; }
+.dv-f-model .input-row { align-items: center; }
+.dv-f-model .input-row > select { flex: 1; min-width: 0; }
+.dv-access > .btn { flex-shrink: 0; }
+
+.dv-card details.fold { background: rgba(29,40,70,.4); }
+.dv-fold > summary .ms:first-child { color: var(--cyan); }
+.dv-card details.fold.dv-fold > summary::after { margin-left: 0; }   /* mais específico que details.fold > summary::after (components.css) */
+.dv-fold-count { margin-left: auto; font: 11px var(--mono); letter-spacing: 0; text-transform: none; color: var(--dim); }
+.dv-fold-count.warn { color: var(--warn); }
+.dv-card .f-hint { color: var(--dim); }   /* --faint dá contraste de uns 2,9:1 sobre o cartão */
+.dv-perm-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+.dv-perm-group h4 { margin: 0 0 2px; font: 700 12px var(--font-body); letter-spacing: 1px; text-transform: uppercase; color: var(--white); }
+.dv-perm-group > .f-help { margin: 0 0 6px; }
+.dv-perm { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-top: 1px solid var(--line); }
+.dv-perm input[type=checkbox] { flex: 0 0 18px; width: 18px; height: 18px; margin: 2px 0 0; padding: 0; clip-path: none; background: none; accent-color: var(--accent); }
+.dv-perm-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dv-perm-text > label { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; cursor: pointer; }
+.dv-perm-note { color: var(--warn); font-size: 12px; }
+
+.dv-sw .dv-sw-label { font-weight: 600; font-size: 13px; color: var(--white); }
+.dv-cmd-box { display: flex; flex-direction: column; gap: 18px; }
+.dv-cmds > .f-label { font-weight: 600; font-size: 13px; color: var(--white); }
+.dv-cmd-rows { display: flex; flex-direction: column; gap: 8px; margin: 4px 0; }
+.dv-cmd-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.dv-cmd-row > input { flex: 1; min-width: 220px; }
+.dv-elev { flex-direction: row; align-items: center; gap: 8px; font-size: 12px; font-weight: 400; color: var(--dim); white-space: nowrap; cursor: pointer; }
+.dv-elev input { width: 16px; height: 16px; padding: 0; clip-path: none; background: none; accent-color: var(--accent); }
+.dv-uuid { margin: 0; }
+.dv-uuid code { font-family: var(--mono); color: var(--text); }
+
+/* Cartões altos (permissões e opções avançadas abertas): a barra Salvar/Descartar acompanha a rolagem em vez de ficar lá no fim */
+.dv-savebar { position: sticky; bottom: 0; z-index: 3; box-shadow: 0 -8px 20px rgba(0,0,0,.4); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; background: var(--card) linear-gradient(rgba(255,176,46,.1), rgba(255,176,46,.1)); border-left: 3px solid var(--warn); }
+.dv-savebar > .ms { color: var(--warn); }
+.dv-save-info { font-size: 13px; color: var(--white); }
+.dv-actions { margin: 0; }
+
+/* ---- Foco do teclado ----
+   style.css desenha o anel por fora (outline-offset: 2px), mas botões, seções recolhíveis e o trilho do interruptor têm borda chanfrada
+   (clip-path) e o próprio recorte esconde o anel. Aqui ele vai por dentro. As janelas (#dlg) são do shell: pedido em coreRequests. */
+.dv-screen .btn:focus-visible, .dv-screen .icon-btn:focus-visible,
+.dv-screen details.fold > summary:focus-visible, .dv-screen .dv-host-opts > summary:focus-visible,
+.dv-dlg .btn:focus-visible, .dv-dlg .icon-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: -4px; }
+.dv-screen .switch input:focus-visible + .track { outline-offset: -3px; }
+
+/* ---- Zona de risco e janelas ---- */
+.dv-danger { border: 0; box-shadow: inset 0 0 0 1px rgba(195,60,60,.35); }
+.dv-danger .card-head h3 { color: #ff8c99; }
+.dv-danger-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.dv-danger-row .f-help { flex: 1; min-width: 240px; margin: 0; }
+.dv-modal-body { display: flex; flex-direction: column; gap: 12px; }
+.dv-check { flex-direction: row; align-items: center; gap: 10px; cursor: pointer; }
+.dv-check input { width: 18px; height: 18px; padding: 0; clip-path: none; background: none; accent-color: var(--accent); }
+
+@media (max-width: 900px) {
+  .dv-fields, .dv-otp .dv-fields { grid-template-columns: 1fr; }
+  .dv-f-pin { max-width: 240px; }
+  .dv-otp-grid { grid-template-columns: 1fr; }
+  .dv-qr-wrap { align-items: flex-start; text-align: left; }
+  .dv-otp-code { font-size: 44px; letter-spacing: 10px; }
+  .dv-host-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .dv-pair.dv-flash { animation: none; } }

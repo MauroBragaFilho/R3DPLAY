@@ -1,0 +1,118 @@
+/* Estilos da tela Sistema (js/views/system.js). Prefixo .sy-. Usa os componentes de components.css e as variáveis de style.css. */
+
+.sy-screen { gap: 16px; }
+.sy-panel { display: flex; flex-direction: column; gap: 16px; animation: in .25s var(--ease); }
+
+/* ---- Sub-abas ---- */
+.sy-tabs button { display: inline-flex; align-items: center; gap: 8px; }
+.sy-tabs button .ms { font-size: 18px; }
+.sy-badge { min-width: 20px; padding: 1px 6px; text-align: center; font: 700 10px var(--mono); letter-spacing: 0; background: var(--warn); color: #0b0f1a;
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px)); }
+.sy-badge.bad { background: var(--accent); color: #fff; }
+
+/* ---- Cartões e textos ---- */
+.sy-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+.sy-card .card-head .ms { color: var(--cyan); }
+.sy-text { margin: 0 0 12px; line-height: 1.55; color: var(--text); }
+.sy-credit { color: var(--dim); font-size: 13px; margin-bottom: 0; }
+.sy-stack { display: flex; flex-direction: column; gap: 18px; }
+.sy-notice-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.muted-text { color: var(--dim); }
+.sy-small { padding: 6px 14px; margin-left: auto; align-self: center; flex-shrink: 0; }
+.sy-issue .banner, .sy-loghint .banner { flex-wrap: wrap; align-items: center; }
+.sy-footer { margin-top: 0; align-items: center; }
+.sy-meta-inline { font: 12px var(--mono); color: var(--dim); }
+
+/* ---- Foco do teclado ----
+   O chanfro (clip-path) corta tudo que fica fora da caixa, inclusive o contorno global de style.css: nos botões, chips,
+   botões de ícone, no seletor de nível e no interruptor o anel precisa ser desenhado POR DENTRO. */
+.sy-screen .btn:focus-visible, .sy-screen .chip:focus-visible, .sy-screen .icon-btn:focus-visible,
+.sy-seg button:focus-visible, .sy-auto .switch input:focus-visible + .track { outline: 0; box-shadow: inset 0 0 0 2px var(--cyan); }
+.sy-search:focus-within { box-shadow: inset 0 -2px 0 var(--cyan); }
+.sy-search input:focus-visible { outline: 0; }
+
+/* ---- Informações ---- */
+.sy-kv dt { align-self: start; padding-top: 2px; }
+.sy-kv dd { font-family: var(--font-body); min-width: 0; }
+.sy-kv dd.mono { font-family: var(--mono); }
+.sy-sk { display: inline-block; width: 140px; height: 14px; vertical-align: middle; }
+.sy-vd-help { margin: 6px 0 0; max-width: 46ch; }
+.sy-chips-ip { margin: 0; }
+.sy-chips-ip .chip { cursor: pointer; }
+.sy-chips-ip .chip .ms { font-size: 16px; color: var(--cyan); }
+@media (max-width: 560px) { .sy-kv { grid-template-columns: 1fr; gap: 0; } .sy-kv dd { margin-bottom: 10px; } .sy-kv dt { padding-top: 0; } }
+
+/* ---- Ações ---- */
+.sy-cards-top { align-items: start; }   /* o resultado de uma ação alarga só o cartão dela; o botão do vizinho não pula */
+.sy-action { display: flex; flex-direction: column; }
+.sy-action .row-actions { margin-top: 6px; }
+.sy-action .sy-text { margin-bottom: 10px; }
+.sy-danger .card-head .ms { color: var(--accent); }
+.sy-hint { margin: 0 0 8px; color: var(--cyan); font: 12px var(--mono); }
+.sy-hint:empty { display: none; }
+.sy-result { margin-top: 14px; }
+.sy-result:empty { display: none; }
+.sy-timer { margin-left: auto; font: 12px var(--mono); color: var(--dim); flex-shrink: 0; }
+.sy-result .banner .spinner { flex-shrink: 0; margin-top: 2px; }
+
+/* ---- Segurança: troca de senha ---- */
+.sy-pw { display: flex; flex-direction: column; gap: 4px; }
+.sy-pw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 28px; }
+.sy-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.sy-fieldset legend { padding: 0 0 12px; font: 700 11px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
+.sy-eye { width: 42px; height: auto; background: var(--input); color: var(--dim); }
+.sy-eye:hover { background: var(--card-hover); color: var(--white); }
+.f-warn { margin: 0; color: var(--warn); font-size: 12px; }
+
+/* ---- Registro ---- */
+.sy-bar { gap: 12px; }
+.sy-bar2 { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.sy-seg button { white-space: nowrap; }
+.sy-seg button:not([aria-checked=true]) { color: #aab7ce; }   /* --dim sobre o fundo do controle dá só ~4,2:1 */
+.sy-seg .sy-n { margin-left: 4px; font: 700 11px var(--mono); }   /* sem opacity: o número carrega informação e precisa de contraste */
+.sy-search { flex: 1 1 240px; max-width: 360px; padding-right: 6px; }
+.sy-clear { width: 28px; height: 28px; background: none; color: var(--dim); }
+.sy-clear:hover { background: var(--card-hover); color: var(--white); }
+label.sy-auto { flex-direction: row; align-items: center; gap: 10px; margin-left: auto; font-weight: 400; font-size: 13px; color: var(--text); cursor: pointer; }
+.sy-meta { margin: 0; color: var(--dim); font: 12px var(--mono); min-height: 18px; }
+.sy-loghint .banner { padding: 4px 12px; font-size: 12px; }
+.sy-loghint .sy-small { padding: 4px 12px; }
+
+.sy-log { height: clamp(260px, calc(100vh - 480px), 760px); overflow: auto; background: #0a0e18; clip-path: var(--clip); padding: 6px 0;
+  font: 12.5px/1.55 var(--mono); border-bottom: 2px solid transparent; }
+.sy-log:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.sy-entry { display: grid; grid-template-columns: 62px 88px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 3px 14px 3px 11px; border-left: 3px solid transparent; }
+.sy-entry:hover { background: rgba(125,139,166,.07); }
+.sy-entry.lv-none { grid-template-columns: minmax(0, 1fr); }
+.sy-time { color: var(--dim); }   /* --faint daria só ~3,4:1 sobre o fundo escuro do registro */
+.sy-lv { justify-self: start; font: 700 10px var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+.sy-msg { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); min-width: 0; }
+.sy-mark { background: rgba(45,226,230,.3); color: var(--white); padding: 0 1px; }
+.lv-verbose .sy-lv, .lv-verbose .sy-msg { color: #6e7d9a; }   /* mais apagado que a depuração, mas ainda acima de 4,5:1 */
+.lv-debug .sy-lv, .lv-debug .sy-msg { color: var(--dim); }
+.lv-info .sy-lv { color: var(--cyan); }
+.lv-warning { border-left-color: var(--warn); background: rgba(255,176,46,.07); }
+.lv-warning .sy-lv { color: var(--warn); }
+.lv-error { border-left-color: var(--accent); background: rgba(255,38,64,.09); }
+.lv-error .sy-lv { color: #ff8c99; }
+.lv-error .sy-msg { color: #ffc2c9; }
+.lv-fatal { border-left-color: var(--accent); background: rgba(255,38,64,.2); }
+.lv-fatal .sy-lv { padding: 2px 6px; background: var(--accent); color: #fff; }
+.lv-fatal .sy-msg { color: #fff; }
+.sy-trunc { position: sticky; top: -6px; z-index: 1; display: flex; align-items: center; gap: 8px; margin: -6px 0 6px; padding: 8px 14px; background: #131b2e; border-bottom: 1px solid var(--line); color: var(--warn); font: 12px var(--font-body); }
+.sy-trunc .ms { font-size: 18px; flex-shrink: 0; }
+.sy-sklist { display: flex; flex-direction: column; gap: 12px; padding: 16px 14px; }
+.sy-sklist .skeleton { height: 14px; }
+.sy-empty { padding: 56px 20px; }
+.sy-empty strong { display: block; margin-bottom: 4px; color: var(--white); font-size: 15px; }
+.sy-empty .muted { max-width: 52ch; margin: 0 auto 16px; }
+
+@media (max-width: 760px) {
+  .sy-tabs button { padding: 10px 10px; }
+  .sy-entry { grid-template-columns: 56px 78px minmax(0, 1fr); gap: 8px; }
+  label.sy-auto { margin-left: 0; }
+}
+@media (max-width: 600px) {
+  .sy-entry { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; }
+  .sy-entry .sy-msg { grid-column: 1 / -1; }
+}

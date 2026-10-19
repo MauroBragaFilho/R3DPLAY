@@ -1,0 +1,172 @@
+{
+  "group": "advanced",
+  "title": "Avançado",
+  "sections": [
+    {
+      "id": "advanced",
+      "title": "Avançado",
+      "options": [
+        {
+          "key": "fec_percentage",
+          "ui": "number",
+          "label": "Porcentagem de FEC",
+          "help": "Porcentagem de pacotes de correção de erros por pacote de dados em cada quadro de vídeo. Valores mais altos podem corrigir mais perdas de pacotes na rede, mas ao custo de aumentar o uso da largura de banda.",
+          "default": 20,
+          "platform": null,
+          "advanced": true,
+          "serialize": "number",
+          "min": 1,
+          "max": 255,
+          "step": 1,
+          "unit": "%",
+          "placeholder": "20",
+          "notes": "No painel original é um <input type=text> sem min/max (placeholder 20); os limites vêm do parser (config.cpp: int_between_f 1..255, valor fora da faixa é ignorado e vale o padrão 20). Gravar inteiro puro, sem decimais."
+        },
+        {
+          "key": "qp",
+          "ui": "number",
+          "label": "Parâmetro de quantização",
+          "help": "Alguns dispositivos podem não suportar Constant Bit Rate. Para esses dispositivos, o QP (parâmetro de quantização) é usado em seu lugar. Um valor mais alto significa mais compactação, mas menos qualidade.",
+          "default": 28,
+          "platform": null,
+          "advanced": true,
+          "serialize": "number",
+          "step": 1,
+          "placeholder": "28",
+          "notes": "Parser: int_f sem faixa (config.cpp), então o painel original não define min/max. Gravar inteiro puro, sem decimais."
+        },
+        {
+          "key": "min_threads",
+          "ui": "number",
+          "label": "Quantidade mínima de threads da CPU",
+          "help": "Aumentar o valor reduz ligeiramente a eficiência da codificação, mas a troca geralmente vale a pena para obter o uso de mais núcleos de CPU para codificação. O valor ideal é o menor valor que pode ser codificado de forma confiável nas configurações de transmissão desejadas em seu hardware.",
+          "default": 2,
+          "platform": null,
+          "advanced": true,
+          "serialize": "number",
+          "min": 1,
+          "step": 1,
+          "placeholder": "2",
+          "notes": "O min=1 vem do <input> do painel original; o parser (int_f) não valida faixa. Gravar inteiro puro, sem decimais."
+        },
+        {
+          "key": "limit_framerate",
+          "ui": "toggle",
+          "label": "Limitar taxa de quadros da captura",
+          "help": "Limita a taxa de quadros da captura pela taxa de quadros solicitado pelo cliente. Pode não executar com taxa de quadros máxima se VSync estiver ativado e a taxa de atualização do monitor não for igual ao solicitado. Pode causar lag em algums clientes se desabilitado.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": true,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "envvar_compatibility_mode",
+          "ui": "toggle",
+          "label": "Modo de compatibilidade ENVVAR",
+          "help": "Ativa o modo de compatibilidade para variáveis de ambiente. Isso modificará o comportamento de certas variáveis de ambiente para torná-las mais compatíveis com ferramentas mais antigas.",
+          "default": "disabled",
+          "platform": null,
+          "advanced": true,
+          "serialize": "enabled_disabled",
+          "notes": "As chaves config.envvar_compatibility_mode e config.envvar_compatibility_mode_desc NÃO existem em pt_BR.json (o painel original cai no fallback em inglês: \"ENVVAR compatibility mode\" / \"Enable compatibility mode for environment variables. This will modify the behavior of certain environment variables to be more compatible with older tools.\"); label e help foram traduzidos do en.json. Efeito real (process.cpp): SUNSHINE_CLIENT_FPS passa a ser o FPS arredondado para inteiro em vez de ter 3 casas decimais."
+        },
+        {
+          "key": "legacy_ordering",
+          "ui": "toggle",
+          "label": "Ordenação de aplicativos para clientes legados",
+          "help": "Ativa a solução alternativa de suporte à ordenação para clientes legados. Pode causar problemas com clientes ou scripts que não conseguem tratar UTF8 corretamente. Os clientes Artemis oferecem suporte a isso por padrão.",
+          "default": "disabled",
+          "platform": null,
+          "advanced": true,
+          "serialize": "enabled_disabled",
+          "notes": "As chaves config.legacy_ordering e config.legacy_ordering_desc NÃO existem em pt_BR.json (o painel original cai no fallback em inglês: \"App ordering for legacy clients\" / \"Enable ordering support workaround for legacy clients. Can cause issues with clients or scripts that can't handle UTF8 correctly. Artemis clients support this by default.\"); label e help foram traduzidos do en.json. Esta é a chave global; a opção por aparelho enable_legacy_ordering (tela de dispositivos) só tem efeito quando esta está ligada (nvhttp.cpp: legacy_ordering && enable_legacy_ordering do cliente)."
+        },
+        {
+          "key": "ignore_encoder_probe_failure",
+          "ui": "toggle",
+          "label": "Ignorar falha na sondagem do codificador",
+          "help": "Permite que a transmissão continue mesmo que a sondagem de codificadores falhe. Isso pode resultar em falha na transmissão se nenhum codificador estiver disponível.",
+          "default": "disabled",
+          "platform": null,
+          "advanced": true,
+          "serialize": "enabled_disabled",
+          "notes": "As chaves config.ignore_encoder_probe_failure e config.ignore_encoder_probe_failure_desc NÃO existem em pt_BR.json (o painel original cai no fallback em inglês: \"Ignore Encoder Probe Failure\" / \"Allow streaming to continue even if probing for encoders fails. This may result in streaming failure if no encoder is available.\"); label e help foram traduzidos do en.json. Efeito real (process.cpp): sem esta opção, se a re-sondagem de codificadores falhar ao iniciar a primeira sessão, o R3D PLAY recusa o início com erro 503."
+        },
+        {
+          "key": "hevc_mode",
+          "ui": "select",
+          "label": "Suporte a HEVC",
+          "help": "Permite que o cliente solicite transmissões de vídeo HEVC Main ou HEVC Main10. A codificação do HEVC consome mais CPU, portanto, ativar essa opção pode reduzir o desempenho ao usar a codificação de software.",
+          "default": 0,
+          "platform": null,
+          "advanced": true,
+          "serialize": "number",
+          "options": [
+            { "value": "0", "label": "O R3D PLAY anunciará o suporte para HEVC com base nos recursos do codificador (recomendado)" },
+            { "value": "1", "label": "O R3D PLAY não anunciará suporte para HEVC" },
+            { "value": "2", "label": "O R3D PLAY anunciará o suporte ao perfil principal HEVC" },
+            { "value": "3", "label": "O R3D PLAY anunciará o suporte aos perfis HEVC Main e Main10 (HDR)" }
+          ],
+          "notes": "Valores numéricos 0..3 (parser: int_between_f 0..3; fora da faixa vale o padrão 0). Os values das opções são strings como no <option> original; o default em config.html é o número 0, então comparar por String(). Gravado no sunshine.conf como número puro (ex.: hevc_mode = 2)."
+        },
+        {
+          "key": "av1_mode",
+          "ui": "select",
+          "label": "Suporte AV1",
+          "help": "Permite que o cliente solicite fluxos de vídeo AV1 Main de 8 ou 10 bits. A codificação do AV1 consome mais CPU, portanto, a ativação dessa opção pode reduzir o desempenho ao usar a codificação de software.",
+          "default": 0,
+          "platform": null,
+          "advanced": true,
+          "serialize": "number",
+          "options": [
+            { "value": "0", "label": "O R3D PLAY anunciará o suporte para AV1 com base nos recursos do codificador (recomendado)" },
+            { "value": "1", "label": "O R3D PLAY não anunciará o suporte ao AV1" },
+            { "value": "2", "label": "O R3D PLAY anunciará o suporte ao perfil AV1 Main de 8 bits" },
+            { "value": "3", "label": "O R3D PLAY anunciará o suporte aos perfis AV1 Main de 8 e 10 bits (HDR)" }
+          ],
+          "notes": "Valores numéricos 0..3 (parser: int_between_f 0..3; fora da faixa vale o padrão 0). Os values das opções são strings como no <option> original; o default em config.html é o número 0, então comparar por String(). Gravado no sunshine.conf como número puro (ex.: av1_mode = 2)."
+        },
+        {
+          "key": "capture",
+          "ui": "select",
+          "label": "Forçar um método de captura específico",
+          "help": "No modo automático, o R3D PLAY usará o primeiro método que funcionar. O NvFBC requer drivers nvidia corrigidos.",
+          "default": "",
+          "platform": ["windows", "linux"],
+          "advanced": true,
+          "serialize": "string",
+          "options": [
+            { "value": "", "label": "Autodetecção (recomendado)" },
+            { "value": "nvfbc", "label": "NvFBC", "platform": ["linux"] },
+            { "value": "wlr", "label": "wlroots", "platform": ["linux"] },
+            { "value": "kms", "label": "KMS", "platform": ["linux"] },
+            { "value": "x11", "label": "X11", "platform": ["linux"] },
+            { "value": "ddx", "label": "Desktop Duplication API", "platform": ["windows"] },
+            { "value": "wgc", "label": "Windows.Graphics.Capture (beta)", "platform": ["windows"] }
+          ],
+          "notes": "Oculto no macOS (v-if platform !== 'macos' no painel original). Parser: string_f sem validação; \"\" = autodetecção (o servidor descarta string vazia, então a linha some do sunshine.conf). Valores reconhecidos pelo código: Windows ddx e wgc (display_base.cpp), Linux nvfbc, wlr, kms e x11 (platform/linux/misc.cpp)."
+        },
+        {
+          "key": "encoder",
+          "ui": "select",
+          "label": "Forçar um codificador específico",
+          "help": "Force um codificador específico; caso contrário, o R3D PLAY selecionará a melhor opção disponível. Observação: se você especificar um codificador de hardware no Windows, ele deverá corresponder à GPU em que o monitor está conectado.",
+          "default": "",
+          "platform": null,
+          "advanced": true,
+          "serialize": "string",
+          "options": [
+            { "value": "", "label": "Autodetecção (recomendado)" },
+            { "value": "nvenc", "label": "NVIDIA NVENC", "platform": ["windows", "linux"] },
+            { "value": "quicksync", "label": "Intel QuickSync", "platform": ["windows"] },
+            { "value": "amdvce", "label": "AMD AMF/VCE", "platform": ["windows"] },
+            { "value": "vaapi", "label": "VA-API", "platform": ["linux"] },
+            { "value": "videotoolbox", "label": "VideoToolbox", "platform": ["macos"] },
+            { "value": "software", "label": "Software" }
+          ],
+          "notes": "Parser: string_f sem validação; \"\" = autodetecção (linha omitida do sunshine.conf). Os nomes aceitos são os de encoder_t::name em video.cpp (nvenc, quicksync, amdvce, vaapi, videotoolbox, software); um nome que não exista ou que falhe na validação gera o erro \"Couldn't find any working encoder matching\" no log e o R3D PLAY volta a procurar sozinho."
+        }
+      ]
+    }
+  ]
+}

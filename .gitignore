@@ -57,3 +57,6 @@ package-lock.json
 *.pyc
 venv/
 dist/
+
+# Painel R3D PLAY: cookie compartilhado do devserver
+tools/ApolloConfig/dev/.session

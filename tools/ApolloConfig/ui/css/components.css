@@ -1,0 +1,136 @@
+/* Componentes compartilhados por todas as telas. Mesma identidade do style.css: chanfro, vermelho/ciano, rótulos mono.
+   Quem precisar de algo novo cria no CSS da própria tela (css/<tela>.css); este arquivo só muda por consenso. */
+
+/* ---- Campos de formulário ---- */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > .f-label { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; font-weight: 600; font-size: 13px; color: var(--white); }
+.field > .f-label .req { color: var(--accent); }
+.f-help { color: var(--dim); font-size: 12px; line-height: 1.45; white-space: pre-line; }
+.f-help a, .banner a { color: var(--cyan); }
+.f-hint { color: var(--faint); font: 11px var(--mono); }
+.f-error { color: #ff8c99; font-size: 12px; }
+.field.invalid input, .field.invalid select, .field.invalid textarea { box-shadow: inset 0 -2px 0 var(--accent); }
+.field.row { flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
+.field.row > .f-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.field.default-changed .f-label::after { content: 'diferente do padrão'; font: 10px var(--mono); text-transform: uppercase; letter-spacing: 1px; color: var(--warn); }
+textarea { background: var(--input); border: 0; border-bottom: 2px solid transparent; clip-path: var(--clip); padding: 10px 14px; color: var(--white); font: 13px/1.5 var(--mono); resize: vertical; min-height: 84px; width: 100%; }
+textarea:focus { outline: 0; border-bottom-color: var(--cyan); }
+input.mono, textarea.mono, .mono { font-family: var(--mono); }
+input[type=number] { appearance: textfield; -moz-appearance: textfield; }
+input[type=range] { padding: 0; clip-path: none; background: none; accent-color: var(--accent); }
+.input-unit { display: flex; align-items: stretch; gap: 0; }
+.input-unit input { flex: 1; }
+.input-unit .unit { display: grid; place-items: center; padding: 0 12px; background: var(--card-hover); color: var(--dim); font: 12px var(--mono); }
+.input-row { display: flex; gap: 8px; align-items: stretch; }
+.input-row > input, .input-row > select { flex: 1; }
+
+/* ---- Interruptor (checkbox como switch) ---- */
+.switch { position: relative; display: inline-flex; width: 44px; height: 24px; flex-shrink: 0; cursor: pointer; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; width: 100%; height: 100%; cursor: pointer; clip-path: none; }
+.switch .track { position: absolute; inset: 0; background: var(--input); clip-path: var(--clip); transition: background .2s var(--ease); }
+.switch .track::after { content: ''; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; background: var(--dim); transition: transform .2s var(--ease), background .2s var(--ease); }
+.switch input:checked + .track { background: var(--accent-soft); }
+.switch input:checked + .track::after { transform: translateX(20px); background: var(--accent); box-shadow: 0 0 8px rgba(255,38,64,.7); }
+.switch input:focus-visible + .track { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.switch input:disabled + .track { opacity: .45; }
+
+/* ---- Controle segmentado (escolha única com poucas opções) ---- */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; background: var(--input); padding: 3px; clip-path: var(--clip); }
+.seg button { padding: 7px 14px; font: 700 12px var(--font-body); letter-spacing: .8px; text-transform: uppercase; color: var(--dim); }
+.seg button:hover { color: var(--text); }
+.seg button[aria-checked=true], .seg button.on { background: var(--accent); color: #fff; }
+
+/* ---- Distintivos ---- */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font: 700 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; background: var(--input); color: var(--cyan); }
+.badge.ok { background: rgba(144,186,60,.18); color: var(--ok); }
+.badge.warn { background: rgba(255,176,46,.16); color: var(--warn); }
+.badge.bad { background: rgba(195,60,60,.25); color: #ff8c99; }
+.badge.live { background: var(--accent); color: #fff; }
+.badge .ms { font-size: 14px; }
+
+/* ---- Avisos ---- */
+.banner { display: flex; gap: 10px; align-items: flex-start; padding: 10px 16px; background: rgba(45,226,230,.1); border-left: 3px solid var(--cyan); color: var(--text); font-size: 13px; }
+.banner.warn { background: rgba(255,176,46,.12); border-left-color: var(--warn); }
+.banner.bad { background: rgba(195,60,60,.22); border-left-color: var(--accent); color: #ffc2c9; }
+.banner.ok { background: rgba(144,186,60,.14); border-left-color: var(--ok); }
+.banner > .ms { flex-shrink: 0; }
+#banner { margin: 0; border-left-width: 0; border-bottom: 1px solid var(--line); justify-content: center; }
+
+/* ---- Navegação interna (sub-abas e menu lateral) ---- */
+.subtabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.subtabs button { position: relative; padding: 10px 16px; font: 700 12px var(--font-body); letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+.subtabs button:hover { color: var(--text); }
+.subtabs button.active, .subtabs button[aria-selected=true] { color: var(--white); }
+.subtabs button.active::after, .subtabs button[aria-selected=true]::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; background: var(--accent); box-shadow: 0 0 8px rgba(255,38,64,.6); }
+.split { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 22px; align-items: start; }
+.sidenav { position: sticky; top: 0; display: flex; flex-direction: column; gap: 2px; }
+.sidenav button { display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 14px; color: var(--dim); font: 600 13px var(--font-body); clip-path: var(--clip); }
+.sidenav button:hover { background: var(--card); color: var(--text); }
+.sidenav button.active { background: var(--card-hover); color: var(--white); box-shadow: inset 3px 0 0 var(--accent); }
+.sidenav .count { margin-left: auto; font: 11px var(--mono); color: var(--faint); }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } .sidenav { position: static; flex-direction: row; flex-wrap: wrap; } }
+
+/* ---- Barra de alterações não salvas (fica grudada embaixo da tela) ---- */
+.savebar { position: sticky; bottom: -32px; z-index: 5; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 8px -32px -32px; padding: 14px 32px; background: rgba(8,11,19,.96); border-top: 2px solid var(--accent); box-shadow: 0 -10px 30px rgba(0,0,0,.45); }
+.savebar .grow { flex: 1; min-width: 200px; }
+@media (max-width: 900px) { .savebar { margin: 8px -16px -18px; padding: 12px 16px; bottom: -18px; } }
+.savebar strong { color: var(--white); }
+
+/* ---- Tabela e listas ---- */
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th { text-align: left; font: 700 10px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--cyan); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.table td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.table tr:last-child td { border-bottom: 0; }
+.table input { width: 100%; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0; }
+.kv dt { color: var(--dim); } .kv dd { margin: 0; color: var(--white); font-family: var(--mono); overflow-wrap: anywhere; }
+.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.card-head h3 { margin: 0; flex: 1; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+.section-title { margin: 8px 0 -6px; }
+
+/* ---- Seções recolhíveis ---- */
+details.fold { background: var(--card); clip-path: var(--clip); }
+details.fold > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px 20px; font: 700 12px var(--font-body); letter-spacing: 1px; text-transform: uppercase; color: var(--white); }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after { content: 'expand_more'; font-family: 'Material Symbols Rounded'; margin-left: auto; font-size: 20px; color: var(--dim); transition: transform .2s var(--ease); }
+details.fold[open] > summary::after { transform: rotate(180deg); }
+details.fold > .fold-body { padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ---- Janelas (modal) ---- */
+dialog.modal { width: min(560px, 92vw); max-width: none; max-height: 90vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+dialog.modal[open] { display: flex; }
+dialog.modal.wide { width: min(900px, 95vw); }
+.modal-head { display: flex; align-items: center; gap: 12px; padding: 18px 22px 0; }
+.modal-head h3 { flex: 1; margin: 0; }
+.modal-body { padding: 14px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+dialog.modal > .error { margin: 0 22px; }
+dialog.modal > .row-actions { margin: 0; padding: 14px 22px 20px; justify-content: flex-end; }
+dialog h3 { margin-bottom: 8px; }
+dialog p { margin: 0 0 4px; }
+
+/* ---- Indicadores ---- */
+.meter { height: 8px; background: var(--input); position: relative; overflow: hidden; }
+.meter > i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--cyan), var(--accent)); transition: width .4s var(--ease); }
+.meter.ok > i { background: var(--ok); } .meter.warn > i { background: var(--warn); } .meter.bad > i { background: var(--accent); }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--line); border-top-color: var(--cyan); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.skeleton { background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; min-height: 18px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.empty > .ms { display: block; font-size: 40px; margin-bottom: 8px; color: var(--faint); }
+.hidden-if-empty:empty { display: none; }
+.right { margin-left: auto; }
+.nowrap { white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- Foco visível em elementos com cantos chanfrados (o clip-path corta o contorno por fora: desenha por dentro) ---- */
+.btn:focus-visible, .icon-btn:focus-visible, .chip:focus-visible, .stat:focus-visible, .seg button:focus-visible, .sidenav button:focus-visible,
+.subtabs button:focus-visible, details.fold > summary:focus-visible, dialog button:focus-visible, .tab-button:focus-visible { outline-offset: -4px; }
+.switch input:focus-visible + .track { outline-offset: -3px; }
+.search:focus-within { box-shadow: inset 0 0 0 2px var(--cyan); }
+.search input:focus-visible { outline: 0; }
+
+/* ---- Avisos (toasts): ficam no topo da pilha de camadas (popover) para aparecerem também sobre janelas modais ---- */
+.toasts { pointer-events: none; }
+.toasts[popover] { position: fixed; inset: auto 24px 24px auto; margin: 0; padding: 0; border: 0; background: none; overflow: visible; width: auto; height: auto; color: inherit; }
+body:has(.savebar) .toasts { bottom: 96px; }

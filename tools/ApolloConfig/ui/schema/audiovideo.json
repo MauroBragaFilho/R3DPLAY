@@ -1,0 +1,502 @@
+{
+  "group": "audiovideo",
+  "title": "Áudio e vídeo",
+  "sections": [
+    {
+      "id": "audio",
+      "title": "Áudio",
+      "options": [
+        {
+          "key": "audio_sink",
+          "ui": "text",
+          "label": "Saída de Áudio",
+          "help": "Especificar manualmente um dispositivo de áudio específico para saída. Se não for definido, o dispositivo será escolhido automaticamente. É altamente recomendável deixar esse campo em branco para usar a seleção automática de dispositivos! Se você tiver vários dispositivos de áudio com nomes idênticos, poderá obter o ID do dispositivo usando o seguinte comando:",
+          "default": "",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "Alto-falantes (dispositivo de áudio de alta definição)",
+          "placeholderByPlatform": {
+            "linux": "alsa_output.pci-0000_09_00.3.analog-stereo",
+            "macos": "BlackHole 2ch"
+          },
+          "helpByPlatform": {
+            "linux": "O nome da saída de áudio usado para Loopback de áudio. Se você não especificar essa variável, o pulseaudio selecionará o dispositivo monitor padrão. Você pode encontrar o nome da saída de áudio usando qualquer um dos comandos:",
+            "macos": "O nome da saída de áudio usado para Loopback de áudio. O R3D PLAY só pode acessar microfones no macOS devido a limitações do sistema. Para transmitir o áudio do sistema usando o Soundflower ou o BlackHole."
+          },
+          "extrasByPlatform": {
+            "windows": [
+              { "kind": "code", "text": "tools\\audio-info.exe" }
+            ],
+            "linux": [
+              { "kind": "code", "text": "pacmd list-sinks | grep \"name:\"" },
+              { "kind": "code", "text": "pactl info | grep Source" }
+            ],
+            "macos": [
+              { "kind": "link", "text": "Soundflower", "url": "https://github.com/mattingalls/Soundflower" },
+              { "kind": "link", "text": "BlackHole", "url": "https://github.com/ExistentialAudio/BlackHole" }
+            ]
+          },
+          "notes": "Campo de texto livre; vazio = seleção automática (chave não é gravada no sunshine.conf). Convenção dos campos *ByPlatform: label/help/placeholder base valem para Windows; labelByPlatform/helpByPlatform/placeholderByPlatform sobrescrevem em linux/macos; extrasByPlatform lista blocos renderizados DEPOIS do texto de ajuda da plataforma, na ordem (kind=code: <pre> monoespaçado; link: âncora target=_blank; italic: itálico; sample: <pre> com quebras de linha). No painel original o texto de ajuda e o placeholder usam $tp (chave + _windows/_linux/_macos, com fallback _unix para linux/macos; sem chave existente usa o placeholder literal do .vue). No macOS o .vue imprime um ponto final logo após o link BlackHole."
+        },
+        {
+          "key": "virtual_sink",
+          "ui": "text",
+          "label": "Saída de Áudio Virtual",
+          "help": "Especificar manualmente um dispositivo de áudio virtual a ser usado. Se não for definido, o dispositivo será escolhido automaticamente. É altamente recomendável deixar esse campo em branco para usar a seleção automática de dispositivos!",
+          "default": "",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "Steam Streaming Speakers"
+        },
+        {
+          "key": "install_steam_audio_drivers",
+          "ui": "toggle",
+          "label": "Instalar os drivers de áudio do Steam",
+          "help": "Se o Steam estiver instalado, isso instalará automaticamente o driver Steam Streaming Speakers para oferecer suporte a som surround 5.1/7.1 e silenciar o áudio do servidor.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "keep_sink_default",
+          "ui": "toggle",
+          "label": "Manter saída de áudio virtual como padrão",
+          "help": "Se o uso da saída de áudio virtual será forçada como padrão (útil quando a saída de áudio do servidor está desabilitado)",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "auto_capture_sink",
+          "ui": "toggle",
+          "label": "Capturar automaticamente saída de áudio em uso",
+          "help": "Captura automaticamente a saída de áudio em uso quando a saída padrão é alterada.",
+          "default": "enabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "stream_audio",
+          "ui": "toggle",
+          "label": "Transmitir áudio",
+          "help": "Define se o áudio será transmitido ou não. Desativar isso pode ser útil para transmitir telas em modo discreto (headless) como segundo monitor.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "translatedFields": ["label", "help"],
+          "notes": "As chaves config.stream_audio e config.stream_audio_desc NÃO existem em pt_BR.json nem em pt.json (o painel original cai no fallback em inglês: \"Stream Audio\" / \"Whether to stream audio or not. Disabling this can be useful for streaming headless displays as second monitors.\"); label e help foram traduzidos do inglês."
+        }
+      ]
+    },
+    {
+      "id": "captura",
+      "title": "Captura de vídeo",
+      "options": [
+        {
+          "key": "adapter_name",
+          "ui": "text",
+          "label": "Nome da GPU",
+          "help": "Especificar manualmente uma GPU a ser usada para captura. Se não for definido, a GPU será escolhida automaticamente. É altamente recomendável deixar esse campo em branco para usar a seleção automática de GPU! Observação: essa GPU deve ter uma tela conectada e ligada. Os valores apropriados podem ser encontrados usando o seguinte comando:",
+          "default": "",
+          "platform": ["windows", "linux"],
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "Série Radeon RX 580",
+          "placeholderByPlatform": {
+            "linux": "/dev/dri/renderD128"
+          },
+          "helpByPlatform": {
+            "linux": "Especificar manualmente uma GPU a ser usada para captura."
+          },
+          "extrasByPlatform": {
+            "windows": [
+              { "kind": "code", "text": "tools\\dxgi-info.exe" }
+            ],
+            "linux": [
+              { "kind": "code", "text": "ls /dev/dri/renderD*  # para encontrar todos os dispositivos compatíveis com VAAPI" },
+              { "kind": "code", "text": "vainfo --display drm --device /dev/dri/renderD129 | \\\n  grep -E \"((VAProfileH264High|VAProfileHEVCMain|VAProfileHEVCMain10).*VAEntrypointEncSlice)|Driver version\"" },
+              { "kind": "text", "text": "Substitua ``renderD129`` pelo dispositivo acima para listar o nome e os recursos do dispositivo. Para ser suportado pelo R3D PLAY, ele precisa ter, no mínimo:" },
+              { "kind": "italic", "text": "VAProfileH264High   : VAEntrypointEncSlice" }
+            ]
+          },
+          "notes": "Oculto no macOS (v-if platform !== 'macos'). Texto base = Windows; helpByPlatform/placeholderByPlatform/extrasByPlatform = linux (ver convenção em audio_sink). No Windows o valor é o nome da GPU obtido com tools\\dxgi-info.exe; no Linux é o dispositivo render (ex.: /dev/dri/renderD128). Vazio = automático (chave não gravada)."
+        },
+        {
+          "key": "output_name",
+          "ui": "text",
+          "label": "ID do monitor",
+          "labelByPlatform": {
+            "linux": "Número do monitor",
+            "macos": "Número do monitor"
+          },
+          "help": "Especifique manualmente o ID do monitor a ser usado para captura. Se não for definido, o monitor principal será capturado. Observação: se você especificou uma GPU acima, esse monitor deverá estar conectado a essa GPU. Durante a inicialização do R3D PLAY, você deverá ver a lista de monitores detectados. Abaixo está um exemplo; a saída real pode ser encontrada na guia Solução de Problemas.",
+          "helpByPlatform": {
+            "linux": "Durante a inicialização do R3D PLAY, você deverá ver uma lista de monitores detectados. Observação: você precisa usar o valor de id dentro do parêntese. Abaixo está um exemplo; a saída real pode ser encontrada na guia Solução de Problemas.",
+            "macos": "Durante a inicialização do R3D PLAY, você deverá ver uma lista de monitores detectados. Observação: você precisa usar o valor de id dentro do parêntese. Abaixo está um exemplo; a saída real pode ser encontrada na guia Solução de Problemas."
+          },
+          "default": "",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "{de9bb7e2-186e-505b-9e93-f48793333810}",
+          "placeholderByPlatform": {
+            "linux": "0",
+            "macos": "0"
+          },
+          "extrasByPlatform": {
+            "windows": [
+              { "kind": "sample", "text": "  {\n    \"device_id\": \"{de9bb7e2-186e-505b-9e93-f48793333810}\"\n    \"display_name\": \"\\\\\\\\.\\\\DISPLAY1\"\n    \"friendly_name\": \"ROG PG279Q\"\n    ...\n  }" }
+            ],
+            "linux": [
+              { "kind": "sample", "text": "Info: Detecting displays\nInfo: Detected display: DVI-D-0 (id: 0) connected: false\nInfo: Detected display: HDMI-0 (id: 1) connected: true\nInfo: Detected display: DP-0 (id: 2) connected: true\nInfo: Detected display: DP-1 (id: 3) connected: false\nInfo: Detected display: DVI-D-1 (id: 4) connected: false" }
+            ],
+            "macos": [
+              { "kind": "sample", "text": "Info: Detecting displays\nInfo: Detected display: Monitor-0 (id: 3) connected: true\nInfo: Detected display: Monitor-1 (id: 2) connected: true" }
+            ]
+          },
+          "notes": "Label/help/placeholder usam $tp no original: Windows = output_name_windows (\"ID do monitor\") + output_name_desc_windows; linux e macOS = output_name_unix (\"Número do monitor\") + output_name_desc_unix. Placeholder: Windows = GUID de exemplo, demais = \"0\". No Windows o valor gravado é o device_id (GUID entre chaves) do monitor (campo device_id da lista exibida no log/Solução de Problemas); no Linux/macOS é o id numérico entre parênteses. Vazio = monitor principal (chave não gravada)."
+        }
+      ]
+    },
+    {
+      "id": "tela",
+      "title": "Telas e modos de vídeo",
+      "groups": [
+        {
+          "id": "dd_advanced",
+          "kind": "accordion",
+          "open": false,
+          "title": "Opções avançadas da tela",
+          "platform": ["windows"],
+          "notice": {
+            "kind": "info",
+            "text": "Não é recomendado usar esta opção em circunstâncias normais. Use as configurações nativas do Windows para alterar a configuração das telas. Ao usar o monitor virtual, apenas a resolução integrada e a resolução/taxa de atualização solicitadas pelo cliente funcionarão. Ao usar várias instâncias do R3D PLAY, certifique-se de desativar esta opção em todas as instâncias, ou ela acabará causando problemas. Ainda é recomendado desativar esta parte se você não quer que a resolução do seu monitor físico mude ou se você transmite apenas com o monitor virtual.",
+            "translated": true,
+            "notes": "Alerta alert-info exibido no topo do corpo do accordion (somente Windows). Texto = config.dd_resolution_option_vdisplay_desc + espaço + config.dd_resolution_option_multi_instance_desc; ambas as chaves faltam em pt_BR.json e pt.json e foram traduzidas de en.json."
+          },
+          "notes": "Accordion Bootstrap que começa FECHADO (botão com classe collapsed). Todas as opções dd_* de dd_configuration_option até dd_mode_remapping ficam dentro dele; dd_hdr_option fica FORA (logo abaixo do accordion)."
+        }
+      ],
+      "options": [
+        {
+          "key": "dd_configuration_option",
+          "ui": "select",
+          "label": "Configuração do dispositivo",
+          "help": "",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "string",
+          "group": "dd_advanced",
+          "options": [
+            { "value": "disabled", "label": "Desativado (padrão)" },
+            { "value": "verify_only", "label": "Verifique se a tela está ativada" },
+            { "value": "ensure_active", "label": "Ativar a tela automaticamente" },
+            { "value": "ensure_primary", "label": "Ativar a tela automaticamente e torná-la a tela primária" },
+            { "value": "ensure_only_display", "label": "Desativar outras telas e ativar somente a tela especificada" }
+          ],
+          "notes": "A chave config.dd_configuration_option não existe em pt_BR.json/pt.json (en.json: \"Device configuration\"); usado o texto de config.dd_config_label do pt_BR.json (\"Configuração do dispositivo\"), que é a mesma frase. O primeiro item usa _common.disabled_def (\"Desativado (padrão)\"). Parser C++ (config_option_from_view): valor desconhecido vira disabled. Esta opção controla a visibilidade das demais dd_* do accordion (tudo exceto ela só aparece quando o valor != disabled)."
+        },
+        {
+          "key": "dd_resolution_option",
+          "ui": "select",
+          "label": "Resolução:",
+          "help": "A opção \"Otimizar configurações do jogo\" deve estar ativada no cliente Moonlight para que isto funcione.",
+          "helpShowIf": { "key": "dd_resolution_option", "in": ["auto", "manual"] },
+          "default": "auto",
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "string",
+          "group": "dd_advanced",
+          "options": [
+            { "value": "disabled", "label": "Não alterar a resolução" },
+            { "value": "auto", "label": "Usar resolução fornecida pelo cliente (padrão)" },
+            { "value": "manual", "label": "Usar resolução inserida manualmente" }
+          ],
+          "showIf": { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] },
+          "notes": "O texto de ajuda (help) só é exibido quando o valor selecionado é auto ou manual (helpShowIf). O rótulo \"Resolução:\" vem com os dois-pontos no pt_BR.json. Parser C++: valor desconhecido vira disabled (o default auto vem de config.html/C++ quando a chave não está no arquivo)."
+        },
+        {
+          "key": "dd_manual_resolution",
+          "ui": "text",
+          "label": "Digite a resolução a ser usada",
+          "help": "",
+          "default": "",
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "string",
+          "group": "dd_advanced",
+          "placeholder": "2560x1440",
+          "validate": { "pattern": "^\\d+x\\d+$" },
+          "showIf": {
+            "key": "dd_resolution_option",
+            "in": ["manual"],
+            "and": [
+              { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] }
+            ]
+          },
+          "notes": "Recuado (ps-4) logo abaixo do select de resolução; o rótulo é um texto de ajuda (form-text) acima do input. O .vue referencia $t('config.dd_manual_resolution'), chave que NÃO existe em nenhum arquivo de locale (o painel original mostra a chave crua); foi usado o texto da chave equivalente config.dd_resolution_option_manual_desc do pt_BR.json. Formato esperado: LARGURAxALTURA (ex.: 2560x1440). Só gravado quando preenchido. Motor (display_device.cpp, parse_resolution_string): o texto é aparado (trim) e deve casar com ^\\d+x\\d+$ (validate.pattern); só é lido quando o cliente Moonlight/Artemis envia 'Otimizar configurações do jogo' (enable_sops; sem isso o R3D PLAY só registra um aviso e não muda a resolução). Com enable_sops e a opção = manual, valor vazio ou fora do formato gera erro no log ('Manual resolution must be specified!' / 'Failed to parse manual resolution string!') e a configuração da tela da sessão não é aplicada."
+        },
+        {
+          "key": "dd_refresh_rate_option",
+          "ui": "select",
+          "label": "Taxa de atualização",
+          "help": "",
+          "default": "auto",
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "string",
+          "group": "dd_advanced",
+          "options": [
+            { "value": "disabled", "label": "Não alterar a taxa de atualização" },
+            { "value": "auto", "label": "Usar valor de FPS fornecido pelo cliente (padrão)" },
+            { "value": "manual", "label": "Usar taxa de atualização digitada manualmente" }
+          ],
+          "showIf": { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] },
+          "notes": "Sem texto de ajuda no painel original. Parser C++: valor desconhecido vira disabled."
+        },
+        {
+          "key": "dd_manual_refresh_rate",
+          "ui": "text",
+          "label": "Digite a taxa de atualização a ser utilizada",
+          "help": "",
+          "default": "",
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "string",
+          "group": "dd_advanced",
+          "placeholder": "59.9558",
+          "validate": { "pattern": "^\\d+(\\.\\d+)?$" },
+          "showIf": {
+            "key": "dd_refresh_rate_option",
+            "in": ["manual"],
+            "and": [
+              { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] }
+            ]
+          },
+          "notes": "Recuado (ps-4) logo abaixo do select de taxa de atualização. O .vue referencia $t('config.dd_manual_refresh_rate'), chave inexistente em todos os locales; usado o texto de config.dd_refresh_rate_option_manual_desc do pt_BR.json. Aceita decimal (ex.: 59.9558); gravado como string. Motor (display_device.cpp, parse_refresh_rate_string): o texto é aparado (trim) e deve casar com ^\\d+(\\.\\d+)?$ (validate.pattern, ponto como separador decimal, sem vírgula); com a opção = manual, valor vazio ou fora do formato gera erro no log ('Manual refresh rate must be specified!' / 'Failed to parse manual refresh rate string!') e a configuração da tela da sessão não é aplicada."
+        },
+        {
+          "key": "dd_config_revert_delay",
+          "ui": "number",
+          "label": "Configurar atraso de reversão",
+          "help": "Atraso adicional em milissegundos para esperar antes de reverter a configuração quando o aplicativo for fechado ou a última sessão for encerrada. O principal é proporcionar uma transição mais suave ao alternar rapidamente entre aplicativos.",
+          "default": 3000,
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "number",
+          "group": "dd_advanced",
+          "min": 0,
+          "max": 2147483647,
+          "step": 1,
+          "unit": "ms",
+          "placeholder": "3000",
+          "showIf": { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] },
+          "notes": "Parser C++: int entre 0 e INT_MAX (milissegundos); fora da faixa ou ausente mantém o padrão de 3 s. Valor igual ao default (3000) não é gravado."
+        },
+        {
+          "key": "dd_config_revert_on_disconnect",
+          "ui": "toggle",
+          "label": "Reverter configurações ao desconectar",
+          "help": "Reverter configurações ao se desconectar de todos os clientes, ao invés do encerramento do aplicativo ou da última sessão.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "enabled_disabled",
+          "group": "dd_advanced",
+          "showIf": { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] }
+        },
+        {
+          "key": "dd_mode_remapping",
+          "ui": "custom",
+          "label": "Modo de Remapeamento da Tela",
+          "help": "Especifique os registros de remapeamento para alterar a resolução solicitada e/ou a taxa de atualização para outros valores.\nA lista é iterada de cima para baixo e a primeira correspondência é usada.\nOs campos \"Solicitado\" podem ser vazios para corresponder a qualquer valor solicitado.",
+          "default": { "mixed": [], "resolution_only": [], "refresh_rate_only": [] },
+          "platform": ["windows"],
+          "advanced": true,
+          "serialize": "json",
+          "group": "dd_advanced",
+          "showIf": { "key": "dd_configuration_option", "in": ["verify_only", "ensure_active", "ensure_primary", "ensure_only_display"] },
+          "widget": "display_mode_remapping",
+          "widgetConfig": {
+            "visibleWhen": "dd_configuration_option != 'disabled' && (dd_resolution_option == 'auto' || dd_refresh_rate_option == 'auto')",
+            "activeListRule": [
+              { "list": "refresh_rate_only", "when": "dd_resolution_option != 'auto'", "columns": ["requested_fps", "final_refresh_rate"] },
+              { "list": "resolution_only", "when": "dd_resolution_option == 'auto' && dd_refresh_rate_option != 'auto'", "columns": ["requested_resolution", "final_resolution"] },
+              { "list": "mixed", "when": "dd_resolution_option == 'auto' && dd_refresh_rate_option == 'auto'", "columns": ["requested_resolution", "requested_fps", "final_resolution", "final_refresh_rate"] }
+            ],
+            "columnLabels": {
+              "requested_resolution": "Resolução solicitada",
+              "requested_fps": "FPS solicitado",
+              "final_resolution": "Resolução final",
+              "final_refresh_rate": "Taxa de atualização final"
+            },
+            "placeholders": {
+              "requested_resolution": "1920x1080",
+              "requested_fps": "60",
+              "final_resolution": "2560x1440",
+              "final_refresh_rate": "119.95"
+            },
+            "addButtonLabel": "Adicionar entrada de remapeamento",
+            "fieldPatterns": {
+              "requested_resolution": "^\\d+x\\d+$",
+              "requested_fps": "^\\d+$",
+              "final_resolution": "^\\d+x\\d+$",
+              "final_refresh_rate": "^\\d+(\\.\\d+)?$"
+            },
+            "helpLines": {
+              "always": [
+                "Especifique os registros de remapeamento para alterar a resolução solicitada e/ou a taxa de atualização para outros valores.",
+                "A lista é iterada de cima para baixo e a primeira correspondência é usada.",
+                "Os campos \"Solicitado\" podem ser vazios para corresponder a qualquer valor solicitado."
+              ],
+              "finalValues": {
+                "mixed": "Pelo menos um campo \"Final\" deve ser especificado. A resolução não especificada ou taxa de atualização não serão alteradas.",
+                "non_mixed": "O campo \"Final\" precisa ser especificado e não pode estar vazio."
+              },
+              "sops": {
+                "mixed": "A opção \"Otimizar configurações do jogo\" deve ser ativada no cliente Moonlight, caso contrário, as entradas com qualquer resolução especificada serão ignoradas.",
+                "resolution_only": "Opção \"Otimizar configurações do jogo\" deve ser ativada no cliente Moonlight, caso contrário o mapeamento será ignorado.",
+                "refresh_rate_only": null
+              }
+            }
+          },
+          "notes": "Tabela editável (DisplayDeviceOptions.vue), dentro do accordion. VALOR: objeto {\"mixed\":[...],\"resolution_only\":[...],\"refresh_rate_only\":[...]}; cada entrada é um objeto de STRINGS com as chaves requested_resolution, requested_fps, final_resolution, final_refresh_rate (vazio permitido; em refresh_rate_only só requested_fps/final_refresh_rate; em resolution_only só requested_resolution/final_resolution; em mixed as quatro). SEMPRE manter as TRÊS listas no objeto: o parser C++ (mode_remapping_from_view) faz get_child nas três e lança exceção se faltar alguma. LISTA ATIVA (getRemappingType): se dd_resolution_option != 'auto' -> refresh_rate_only; senão, se dd_refresh_rate_option != 'auto' -> resolution_only; senão -> mixed. Só as entradas da lista ativa são exibidas/editadas; as outras listas são preservadas intactas. VISIBILIDADE (canBeRemapped): (dd_resolution_option=='auto' || dd_refresh_rate_option=='auto') && dd_configuration_option != 'disabled' (o showIf do schema cobre só a segunda parte; a primeira deve ser avaliada pelo widget). LAYOUT: rótulo (label) acima; bloco de ajuda com as linhas helpLines.always, depois helpLines.finalValues (mixed ou non_mixed conforme a lista ativa), depois helpLines.sops (mixed só na lista mixed; resolution_only só na lista resolution_only; nenhuma em refresh_rate_only), separadas por quebra de linha. Tabela (só aparece com ao menos 1 entrada na lista ativa) com colunas na ordem requested_resolution, requested_fps, final_resolution, final_refresh_rate (filtradas pela lista ativa, ver activeListRule) + coluna final de botões; cada linha tem inputs de texto monoespaçados com os placeholders de widgetConfig.placeholders e botão vermelho de lixeira que remove a linha. Abaixo da tabela fica o botão verde \"+ Adicionar entrada de remapeamento\" (addButtonLabel) que acrescenta ao fim da lista ativa uma entrada com todas as chaves aplicáveis = \"\". SERIALIZAÇÃO (config.html serialize + confighttp saveConfig): objeto enviado como JSON e gravado em UMA linha 'dd_mode_remapping = <JSON compacto>' (nlohmann dump, chaves em ordem alfabética: mixed, refresh_rate_only, resolution_only; dentro da entrada: final_refresh_rate, final_resolution, requested_fps, requested_resolution), ex.: dd_mode_remapping = {\"mixed\":[],\"refresh_rate_only\":[{\"final_refresh_rate\":\"119.95\",\"requested_fps\":\"60\"}],\"resolution_only\":[]}. O painel original NÃO filtra entradas vazias ao salvar. A chave é omitida quando o objeto é igual ao default (a comparação original é por JSON.stringify, sensível à ordem das chaves). LEITURA: o valor no conf é string JSON (JSON.parse); ausente/inválido = default com as três listas vazias. Aplicação (R3D PLAY, display_device.cpp remap_display_mode_if_needed): lista percorrida de cima para baixo, vale a primeira correspondência; requested_* vazio casa com qualquer valor; final_* nunca vazio nas listas *_only; na mixed pelo menos um final_* preenchido. FORMATOS (widgetConfig.fieldPatterns, aplicados após trim; campo vazio é aceito pelo parser, mas as regras de 'final' acima continuam valendo): *_resolution = ^\\d+x\\d+$ (ex.: 1920x1080); requested_fps = ^\\d+$ (SOMENTE inteiro, sem decimal); final_refresh_rate = ^\\d+(\\.\\d+)?$ (aceita decimal com ponto). Entrada fora do formato, ou lista ativa com entrada sem nenhum 'final', faz a configuração de tela da sessão não ser aplicada (a transmissão segue; erro no log: 'Failed to parse remapping entry' / 'At least one final value must be set'). Entradas com resolução são ignoradas (com aviso) se o cliente não enviar 'Otimizar configurações do jogo'. A seleção da lista ativa no motor (determine_remapping_type) coincide com a do painel: resolução auto + FPS auto = mixed; só resolução auto = resolution_only; só FPS auto = refresh_rate_only; nenhum auto = sem remapeamento."
+        },
+        {
+          "key": "dd_hdr_option",
+          "ui": "select",
+          "label": "HDR",
+          "help": "",
+          "default": "auto",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "disabled", "label": "Não alterar as configurações do HDR" },
+            { "value": "auto", "label": "Ligar/desligar o modo HDR conforme solicitado pelo cliente (padrão)" }
+          ],
+          "notes": "Fica FORA do accordion (sempre visível, somente Windows) e não depende de dd_configuration_option. O bloco 'dd_wa_hdr_toggle_delay' (Solução alternativa de alto contraste para HDR, número 0..3000 ms, default 0) está COMENTADO no .vue logo abaixo deste select, portanto NÃO é exibido; a chave existe em config.html (defaults) e no parser C++, mas não foi incluída neste schema."
+        },
+        {
+          "key": "max_bitrate",
+          "ui": "number",
+          "label": "Taxa de bits máximo",
+          "help": "A taxa máxima de bits (em Kbps) que R3D PLAY usará para condificar a transmissão. Se for 0, sempre usará a taxa de bits solicitada pelo cliente Artemis/Moonlight.",
+          "default": 0,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "step": 1,
+          "unit": "kbps",
+          "placeholder": "0",
+          "notes": "No painel original é <input type=number> sem min/max; o parser C++ (int_f) também não impõe faixa e não valida decimais, por isso só inteiros (step 1). 0 = usar a taxa solicitada pelo cliente (valor igual ao default, não é gravado). Motor (rtsp.cpp): se max_bitrate > 0 e menor que a taxa pedida pelo cliente, a transmissão usa max_bitrate; valores <= 0 não limitam."
+        },
+        {
+          "key": "minimum_fps_target",
+          "ui": "number",
+          "label": "Meta mínima de FPS",
+          "help": "O menor FPS efetivo que uma transmissão pode atingir. Defina 0 para automático.",
+          "default": 0,
+          "platform": null,
+          "advanced": false,
+          "serialize": "number",
+          "min": 0,
+          "max": 1000,
+          "unit": "fps",
+          "placeholder": "0",
+          "translatedFields": ["label", "help"],
+          "notes": "config.minimum_fps_target e config.minimum_fps_target_desc NÃO existem em pt_BR.json nem em pt.json (en.json: \"Minimum FPS Target\" / \"The lowest effective FPS a stream can reach. Set 0 for automatic.\"); traduzidos do inglês. Parser C++: double entre 0.0 e 1000.0 (fora da faixa mantém o padrão 0); aceita decimais, por isso o campo não deve impor step inteiro. 0 = automático: o motor (video.cpp) usa max(FPS de codificação/5, 10 fps), isto é, cerca de 1/5 do FPS da transmissão com piso de 10 fps; > 0 usa o valor informado."
+        },
+        {
+          "key": "fallback_mode",
+          "ui": "text",
+          "label": "Modo Monitor de Reserva",
+          "help": "R3D PLAY vai usar esse modo quando o cliente não providenciar um modo ou quando o aplicativo é iniciado através da UI da web. Formato: [Largura]x[Altura]x[FPS]",
+          "default": "",
+          "engineDefault": "1920x1080x60",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "1920x1080x60",
+          "validate": {
+            "pattern": "^\\d+x\\d+x\\d+(\\.\\d+)?$",
+            "message": "Modo de reserva inválido. Formato: [Largura]x[Altura]x[FPS]",
+            "savePattern": "^\\d+x\\d+x\\d+$"
+          },
+          "notes": "Validação ao digitar (AudioVideo.vue, evento input): regex /^\\d+x\\d+x\\d+(\\.\\d+)?$/; se não casar, setCustomValidity(config.fallback_mode_error) + reportValidity (mensagem em validate.message). Ao salvar (config.html serialize), se o valor não casar com /^\\d+x\\d+x\\d+$/ (SEM decimal, validate.savePattern), o valor é substituído pelo último valor válido em cache (o da carga da página ou o último salvo válido). Default do painel = \"\" (vazio, não gravado); default real do motor C++ (config.cpp) = \"1920x1080x60\" (engineDefault)."
+        },
+        {
+          "key": "headless_mode",
+          "ui": "toggle",
+          "label": "Modo Discreto",
+          "help": "Inicia R3D PLAY no modo discreto. Quando ativado, todos os aplicativos vão iniciar no monitor virtual.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "double_refreshrate",
+          "ui": "toggle",
+          "label": "Taxa de atualização dobrada para Monitores Virtuais",
+          "help": "Dobra a taxa de atualização quando criando monitores virtuais, mantendo a taxa de atualização da transmissão inalterada. Pode potencialmente melhorar problemas com engasgos de quadros em alguns sistemas.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled"
+        },
+        {
+          "key": "isolated_virtual_display_option",
+          "ui": "toggle",
+          "label": "Mover o monitor virtual para o canto inferior direito do layout de telas",
+          "help": "Isso isola o monitor virtual de todas as outras telas e mantém os movimentos do mouse dentro da tela virtual. Reorganiza as telas de modo que todas as outras fiquem à esquerda do monitor virtual.",
+          "default": "disabled",
+          "platform": ["windows"],
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "translatedFields": ["label", "help"],
+          "notes": "config.isolated_virtual_display_option e config.isolated_virtual_display_option_desc NÃO existem em pt_BR.json nem em pt.json (en.json: \"Move the Virtual Display to the bottom right-most corner of the display layout\" / \"This makes the display isolated from all other display and contains mouse movements to the virtual screen. This reorganizes the displays such that the all other displays are to the left of the virtual display.\"); traduzidos do inglês."
+        }
+      ],
+      "statusWidgets": [
+        {
+          "id": "sudovda_status",
+          "platform": ["windows"],
+          "source": "vdisplayStatus (campo extra retornado por GET /api/config no Windows; NÃO é uma chave do sunshine.conf e não é gravado)",
+          "statusMap": {
+            "1": "Desconhecido",
+            "0": "Pronto",
+            "-1": "Não inicializado",
+            "-2": "Versão incompatível",
+            "-3": "Falha no watchdog"
+          },
+          "statusMapOriginal": {
+            "1": "Unknown",
+            "0": "Ready",
+            "-1": "Uninitialized",
+            "-2": "Version Incompatible",
+            "-3": "Watchdog Failed"
+          },
+          "defaultStatus": "1",
+          "titleTemplate": "Status do driver SudoVDA: {status}",
+          "titleTemplateOriginal": "SudoVDA Driver status: {status}",
+          "okValue": "0",
+          "okStyle": "success",
+          "otherwiseStyle": "warning",
+          "warningText": "Certifique-se de que o driver SudoVDA esteja instalado na versão mais recente e habilitado corretamente.",
+          "warningTextOriginal": "Please ensure SudoVDA driver is installed to the latest version and enabled properly.",
+          "warningShownWhen": "status != 0",
+          "translated": true,
+          "notes": "Alerta de status (não é uma opção). No original: <div class=\"alert alert-success|alert-warning\"> com ícone fa-circle-info e o texto 'SudoVDA Driver status: <status>'; classe alert-success quando vdisplayStatus é falso (0) e alert-warning em qualquer outro valor (1, -1, -2, -3). O texto em inglês é fixo no .vue (não usa i18n); a tradução PT-BR acima é nossa. Quando o status != 0 aparece abaixo, em form-text, o warningText. Valor inicial antes de carregar = \"1\" (Unknown). Somente Windows. Significado real no motor (virtual_display.h, enum VDISPLAY::DRIVER_STATUS): 1 = UNKNOWN (driver ainda não inicializado), 0 = OK, -1 = FAILED (não conseguiu abrir o dispositivo SudoVDA; o painel original rotula como 'Uninitialized'), -2 = VERSION_INCOMPATIBLE, -3 = WATCHDOG_FAILED."
+        }
+      ]
+    }
+  ]
+}

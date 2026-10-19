@@ -38,7 +38,8 @@ h3::before, .page-title::before { content: '// '; }
 .app { display: flex; flex-direction: column; height: 100vh; }
 .topbar { display: flex; align-items: center; gap: 28px; padding: 0 32px; height: 64px; background: var(--nav); flex-shrink: 0; }
 .brand { display: flex; align-items: center; gap: 12px; }
-.logo { width: 30px; height: 30px; filter: drop-shadow(0 0 6px rgba(255,38,64,.55)); }
+.logo { width: 32px; height: 32px; border-radius: 8px; filter: drop-shadow(0 0 6px rgba(227,32,44,.5)); }
+.logo-big { width: 76px; height: 76px; border-radius: 18px; margin: 0 auto 6px; display: block; filter: drop-shadow(0 0 14px rgba(227,32,44,.5)); }
 .brand span { display: block; font-size: 10px; color: var(--dim); text-transform: uppercase; font-weight: 600; letter-spacing: .6px; line-height: 1.2; }
 .brand strong { display: block; font: 700 14px var(--font-title); letter-spacing: .5px; color: var(--white); }
 .tabs { display: flex; gap: 6px; flex: 1; }
@@ -70,7 +71,7 @@ h3::before, .page-title::before { content: '// '; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--input); clip-path: var(--clip); font: 600 13px var(--mono); color: var(--white); }
 .chip small { color: var(--dim); font: 400 11px var(--font-body); }
-.chip:hover { background: var(--card-hover); outline: 1px solid var(--cyan); }
+.chip:hover { background: var(--card-hover); box-shadow: inset 0 0 0 1px var(--cyan); }
 .pair-form { display: flex; flex-wrap: wrap; gap: 10px; }
 .pair-form input { width: 110px; text-align: center; letter-spacing: 6px; font: 700 20px var(--mono); }
 .pair-form input#pairName { flex: 1; min-width: 160px; text-align: left; letter-spacing: 0; font: 400 14px var(--font-body); }

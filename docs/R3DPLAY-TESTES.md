@@ -52,3 +52,16 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 - A janela R3D PLAY publicada é autocontida (não precisa do .NET instalado); o WebView2 do Windows 10/11 é necessário.
 - **Rebrand (2026-10-19)**: ícone "R" do fork do RetroArch no launcher (ícone do app, cabeçalho, menu rápido), nome "R3D LAUNCHER" e "R3D PLAY" no PC (bandeja, janela, instalador, atalho do menu Iniciar, serviço). O APK novo foi instalado e o logo conferido no A51; o instalador do PC com os novos ícones ainda não foi instalado/testado.
 - Nomes técnicos mantidos de propósito para atualizar por cima: pasta `C:\Program Files\Apollo`, serviço `ApolloService`, regras de firewall, `ApolloConfig.exe` e a pasta `%LOCALAPPDATA%\ApolloConfig`.
+
+## Painel único (janela R3D PLAY) — 2026-10-19
+
+| Área | O que foi visto |
+|---|---|
+| Telas | Início, Jogos, Dispositivos, Config (as 104 opções, com as avançadas) e Sistema, numa janela só, sem a janela "Opções avançadas". Cada tela foi construída, revisada por 3 revisores independentes (schema/lógica, robustez/segurança, UX) e corrigida. |
+| Testes automáticos | 467 testes (`node --test "tools/ApolloConfig/dev/tests/*.test.mjs"`): serialização de todas as chaves de configuração, política dos jogos detectados, permissões e presets, QR code, log, estatísticas. |
+| Janela real (WebView2) | Aberta com depuração remota (`dev/cdp-shot.mjs`): as 5 abas carregaram sem erro no console, com capas reais, dados do PC ao vivo, em 1280 e 760 px. |
+| Gravação real | A configuração atual foi regravada sem mudanças e o `sunshine.conf` ficou idêntico byte a byte; gravar e remover uma chave simples e uma lista (`global_prep_cmd`) também voltou ao arquivo original. |
+| Reinício real | `restartServer()` reiniciou o serviço em 7 s, a sessão foi refeita sozinha e a lista de jogos voltou. |
+| Ponte nativa | `whoami` (só o usuário), `info.dataDir`, log em UTF-8 (sem texto quebrado em "™"), `stats`, fechar a janela sem alterações pendentes. |
+
+Ainda não testado: pareamento real de um celular novo pela tela Dispositivos (PIN e OTP), "Dar acesso total", troca de senha real, a pergunta ao fechar a janela com alterações não salvas (caixa do Windows), Linux/macOS, e a instalação do novo `R3DPLAY-Setup.exe` (UAC: o usuário dá dois cliques).

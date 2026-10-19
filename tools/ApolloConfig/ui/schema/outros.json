@@ -1,0 +1,82 @@
+{
+  "group": "outros",
+  "title": "Outras opções",
+  "sections": [
+    {
+      "id": "tela",
+      "title": "Tela (Windows)",
+      "options": [
+        {
+          "key": "dd_wa_hdr_toggle_delay",
+          "ui": "number",
+          "label": "Solução alternativa de alto contraste para HDR",
+          "help": "Ao usar uma tela virtual para transmissão, ele pode exibir uma cor HDR incorreta. Com esta opção ativada, o R3D PLAY tentará mitigar esse problema desligando e religando o HDR.\nSe o valor for 0, essa solução é desativada (padrão). Se o valor for entre 0 e 3000 milissegundos, R3D PLAY vai desativar o HDR, esperar pelo tempo especificado e então ligar o HDR novamente. O atraso recomendado é de aproximadamente 500 milissegundos para a maioria dos casos.\nNÃO UTILIZE essa solução a não ser que você tenha problemas com o HDR, visto que isso afeta diretamente o tempo de iniciação da transmissão!",
+          "default": 0,
+          "platform": [
+            "windows"
+          ],
+          "advanced": true,
+          "serialize": "number",
+          "min": 0,
+          "max": 3000,
+          "step": 1,
+          "unit": "ms",
+          "placeholder": "0",
+          "showIf": {
+            "key": "dd_configuration_option",
+            "in": [
+              "verify_only",
+              "ensure_active",
+              "ensure_primary",
+              "ensure_only_display"
+            ]
+          },
+          "notes": "Label e help vêm de pt_BR.json (config.dd_wa_hdr_toggle_delay, _desc_1, _desc_2 e _desc_3, linhas 224-227), unidos com quebra de linha (no original são três parágrafos separados por <br>). Parser C++ (config.cpp:1201-1205): int_between_f 0..3000; fora da faixa ou ausente = 0 = solução desativada. Valor igual ao default (0) não precisa ser gravado. Gravar inteiro puro, sem decimais. No painel original o bloco está COMENTADO em DisplayDeviceOptions.vue (linhas 232-245), por isso a chave nunca aparecia na interface, mas ela é lida pelo C++ e documentada em docs/configuration.md (seção dd_wa_hdr_toggle_delay): o delay vai para WinWorkarounds.m_hdr_blank_delay (display_device.cpp:624) quando diferente de zero. Funciona independente de dd_hdr_option, porém só tem efeito com dd_configuration_option != disabled: com 'disabled' parse_device_prep_option devolve nullopt e parse_configuration retorna configuration_disabled (display_device.cpp:271-290 e 848-852), então nenhum ajuste de HDR roda. Por isso o showIf é o mesmo de dd_config_revert_delay; ele aponta para uma chave de OUTRO grupo (audiovideo.json), então o renderizador deve resolver showIf no objeto de configuração único, não só dentro do grupo."
+        }
+      ]
+    },
+    {
+      "id": "teclado",
+      "title": "Teclado",
+      "options": [
+        {
+          "key": "keybindings",
+          "ui": "text",
+          "label": "Remapeamento de teclas",
+          "help": "(traduzido) Às vezes pode ser útil remapear teclas. O Wayland, por exemplo, não permite que os clientes capturem a tecla Windows. Dica: consulte os códigos de tecla virtual (Virtual-Key Codes) da Microsoft. A lista precisa ter um número par de elementos.\nFormato: lista de pares origem,destino entre colchetes, em decimal ou hexadecimal com 0x e número par de dígitos. Exemplo: [0x10,0xA0,0x11,0xA2,0x12,0xA4,0x4A,0x4B]. Os três mapeamentos padrão (Shift, Ctrl e Alt para as versões esquerdas) sempre continuam ativos.",
+          "default": "[0x10,0xA0,0x11,0xA2,0x12,0xA4]",
+          "platform": null,
+          "advanced": true,
+          "serialize": "string",
+          "placeholder": "[0x10,0xA0,0x11,0xA2,0x12,0xA4]",
+          "validate": {
+            "pattern": "^\\[(?:0x(?:[0-9A-Fa-f]{2}){1,4}|\\d+),\\s*(?:0x(?:[0-9A-Fa-f]{2}){1,4}|\\d+)(?:,\\s*(?:0x(?:[0-9A-Fa-f]{2}){1,4}|\\d+),\\s*(?:0x(?:[0-9A-Fa-f]{2}){1,4}|\\d+))*\\]$",
+            "message": "Formato inválido. Use pares de códigos entre colchetes, sem espaço antes das vírgulas. Exemplo: [0x10,0xA0,0x4A,0x4B]"
+          },
+          "learn_more": {
+            "label": "Códigos de tecla virtual",
+            "url": "https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes"
+          },
+          "notes": "NÃO existe texto em pt_BR.json nem en.json (a chave 'keybindings' só aparece em cs/hu/vi/zh_TW, sem texto de ajuda); label e primeira parte do help são tradução do docs/configuration.md (seção keybindings, em inglês; a nota 'não disponível na UI' foi omitida porque agora é). O segundo parágrafo do help (formato, exemplo, padrões mantidos) foi acrescentado a partir do código. Default do painel (config.html:182) é a string '[0x10,0xA0,0x11,0xA2,0x12,0xA4]', idêntica ao default do C++ (config.cpp:553-557: 0x10->0xA0, 0x11->0xA2, 0x12->0xA4). Valor igual ao default não precisa ser gravado. Parser (config.cpp:1250 map_int_int_f -> list_int_f): lista com número PAR de elementos (ímpar é ignorada com aviso); cada item é decimal ou '0x' minúsculo + hex (util::from_hex converte em bytes, então a quantidade de dígitos hex precisa ser PAR: 0x4A, 0x05, 0x8041; 0x5 vira 0); espaços só são tolerados APÓS a vírgula (espaço antes da vírgula ou antes de ']' entra no item e corrompe o valor), por isso o validate.pattern proíbe. Usa emplace: pares cujo código de origem já existe (incluindo os 3 padrão) NÃO são sobrescritos, então o valor do arquivo só ACRESCENTA mapeamentos. Aplicação: input.cpp map_keycode troca o código da tecla recebida do cliente pelo código de destino. Convive com key_rightalt_to_key_win (que apenas faz emplace de 0xA5->0x5B). Gravar em UMA linha: keybindings = [0x10,0xA0,...]. Evitar '#' (o parser corta o valor)."
+        }
+      ]
+    },
+    {
+      "id": "biblioteca",
+      "title": "Biblioteca de jogos (R3D PLAY)",
+      "options": [
+        {
+          "key": "share_library",
+          "ui": "toggle",
+          "label": "Compartilhar biblioteca de jogos com o R3D PLAY",
+          "help": "Permite que o launcher R3D PLAY no celular leia, sem senha, a lista de jogos deste PC, as capas e o uso do PC (aba Sistema). Os dados são somente leitura e não incluem credenciais, mas ficam abertos à rede local. Desative para bloquear: o launcher deixa de listar os jogos deste PC.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "NÃO existe texto em locale (pt_BR/en); label e help redigidos a partir do código e da documentação do projeto, não são tradução: comentário em nvhttp.cpp:884-886 ('Desligue com share_library = disabled no sunshine.conf') e docs/R3DPLAY-TESTES.md:51 ('/r3d/* ficam abertos à rede local sem senha'). Opção própria do fork R3D PLAY (não existe no R3D PLAY/R3D PLAY original). Default do C++: true (config.cpp:601). Parser: bool_f (config.cpp:1304). Com 'disabled', os endpoints GET /r3d/library, /r3d/cover e /r3d/stats respondem 403 (nvhttp.cpp:888, 916, 939). Ajuste só vale após reiniciar o R3D PLAY. Valor igual ao default ('enabled') não precisa ser gravado."
+        }
+      ]
+    }
+  ]
+}

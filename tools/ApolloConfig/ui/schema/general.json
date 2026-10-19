@@ -1,0 +1,341 @@
+{
+  "group": "general",
+  "title": "Geral",
+  "sections": [
+    {
+      "id": "geral",
+      "title": "Geral",
+      "options": [
+        {
+          "key": "locale",
+          "ui": "select",
+          "label": "Linguagem",
+          "help": "A linguagem usada na interface de usuário do R3D PLAY.",
+          "default": "en",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "bg", "label": "Български (Bulgarian)" },
+            { "value": "cs", "label": "Čeština (Czech)" },
+            { "value": "de", "label": "Deutsch (German)" },
+            { "value": "en", "label": "English" },
+            { "value": "en_GB", "label": "English, UK" },
+            { "value": "en_US", "label": "English, US" },
+            { "value": "es", "label": "Español (Spanish)" },
+            { "value": "fr", "label": "Français (French)" },
+            { "value": "hu", "label": "Magyar (Hungarian)" },
+            { "value": "it", "label": "Italiano (Italian)" },
+            { "value": "ja", "label": "日本語 (Japanese)" },
+            { "value": "ko", "label": "한국어 (Korean)" },
+            { "value": "pl", "label": "Polski (Polish)" },
+            { "value": "pt", "label": "Português (Portuguese)" },
+            { "value": "pt_BR", "label": "Português, Brasileiro (Portuguese, Brazilian)" },
+            { "value": "ru", "label": "Русский (Russian)" },
+            { "value": "sv", "label": "svenska (Swedish)" },
+            { "value": "tr", "label": "Türkçe (Turkish)" },
+            { "value": "uk", "label": "Українська (Ukranian)" },
+            { "value": "vi", "label": "Tiếng Việt (Vietnamese)" },
+            { "value": "zh", "label": "简体中文 (Chinese Simplified)" },
+            { "value": "zh_TW", "label": "繁體中文 (Chinese Traditional)" }
+          ],
+          "notes": "Opções codificadas no General.vue (não vêm do pt_BR.json): cada idioma aparece no próprio idioma, com a grafia original (inclusive 'Ukranian'). Lista e ordem idênticas às aceitas pelo C++ (string_restricted_f, config.cpp:1320-1343): valor fora da lista é ignorado e fica o default 'en'. A mudança só vale após reiniciar o R3D PLAY (/api/configLocale devolve o idioma em memória)."
+        },
+        {
+          "key": "sunshine_name",
+          "ui": "text",
+          "label": "Nome R3D PLAY",
+          "help": "O nome exibido pelo Moonlight. Se não for especificado, será usado o nome do PC servidor",
+          "default": "",
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "placeholder": "R3D PLAY",
+          "notes": "O input tem placeholder 'R3D PLAY' (General.vue). Default do painel é ''; vazio = o C++ usa o nome do PC (platf::get_host_name(), config.cpp:547). '#' no texto trunca o valor no .conf (ver _serializacao.md, seção 9)."
+        },
+        {
+          "key": "min_log_level",
+          "ui": "select",
+          "label": "Nível do log",
+          "help": "O nível mínimo do log impresso na saída padrão",
+          "default": 2,
+          "platform": null,
+          "advanced": false,
+          "serialize": "string",
+          "options": [
+            { "value": "0", "label": "Verboso" },
+            { "value": "1", "label": "Depuração" },
+            { "value": "2", "label": "Informação" },
+            { "value": "3", "label": "Advertência" },
+            { "value": "4", "label": "Erro" },
+            { "value": "5", "label": "Fatal" },
+            { "value": "6", "label": "Nenhum" }
+          ],
+          "notes": "Os textos vêm das chaves antigas config.log_level, log_level_desc e log_level_0..6 do pt_BR.json: o General.vue usa config.min_log_level*, que só existem em en.json, então o painel original cai no fallback em inglês. Os valores das opções são strings '0'..'6' (o painel envia string); o default em memória do painel é o NÚMERO 2 (comparar como string). C++ (config.cpp:1345-1370): aceita também os nomes verbose, debug, info, warning, error, fatal, none ou um valor cujo 1º caractere seja dígito 0-6; qualquer outro texto é ignorado e fica Informação (2)."
+        },
+        {
+          "key": "global_prep_cmd",
+          "ui": "custom",
+          "label": "Comando Preparativo",
+          "help": "Configure uma lista de comandos a serem executados antes ou depois da execução de qualquer aplicativo. Se algum dos comandos preparativos especificados falhar, o processo de inicialização do aplicativo será abortado.",
+          "default": [],
+          "platform": null,
+          "advanced": false,
+          "serialize": "json",
+          "widget": "cmd_do_undo_list",
+          "widgetConfig": {
+            "tableHiddenWhenEmpty": true,
+            "columns": [
+              {
+                "field": "do",
+                "label": "Executar Comando",
+                "icon": "play",
+                "input": "text",
+                "monospace": true
+              },
+              {
+                "field": "undo",
+                "label": "Desfazer Comando",
+                "icon": "undo",
+                "input": "text",
+                "monospace": true
+              },
+              {
+                "field": "elevated",
+                "label": "Executar como Administrador",
+                "icon": "shield",
+                "input": "checkbox",
+                "checkboxLabel": "Elevado",
+                "defaultHint": "Padrão: desmarcado",
+                "platform": [
+                  "windows"
+                ]
+              }
+            ],
+            "newItem": {
+              "do": "",
+              "undo": ""
+            },
+            "newItemByPlatform": {
+              "windows": {
+                "do": "",
+                "undo": "",
+                "elevated": false
+              }
+            },
+            "rowActions": [
+              {
+                "action": "remove",
+                "icon": "trash",
+                "style": "danger"
+              },
+              {
+                "action": "insertBefore",
+                "icon": "plus",
+                "style": "success"
+              }
+            ],
+            "addButtonLabel": "Adicionar",
+            "keepItemWhen": "trim(do) != '' || trim(undo) != ''",
+            "helpWhiteSpace": "pre-wrap"
+          },
+          "notes": "Lista editavel de pares de comandos (mesmo widget de global_state_cmd). Valor em memoria: array de objetos {\"do\": string, \"undo\": string} e, SOMENTE no Windows, tambem \"elevated\": boolean (o painel original forca elevated = !!elevated em todos os itens ao carregar e cria itens novos com elevated=false; em linux/macos o campo nao existe). Colunas da tabela (so aparece quando ha ao menos 1 item): [1] icone play + \"Executar Comando\" (campo do, input texto monoespacado), [2] icone undo + \"Desfazer Comando\" (campo undo, input texto monoespacado), [3] SOMENTE Windows: icone escudo + cabecalho \"Executar como Administrador\" com um checkbox de rotulo \"Elevado\" por linha (campo elevated, sem texto de ajuda; checkbox true/false; como o Checkbox.vue recebe default=\"false\", exibe abaixo do rotulo o texto 'Padrao: desmarcado' = _common.disabled_def_cbox), [4] botoes a direita da linha: lixeira vermelha (remove a linha) e '+' verde (insere um item vazio ANTES da linha, splice(i,0,novo)). Abaixo da tabela (ou sozinho quando a lista esta vazia) fica o botao verde \"+ Adicionar\" (rotulo \"Adicionar\") que acrescenta item vazio ao final. Descricao renderizada com white-space: pre-wrap. Serializacao (config.html serialize/save + confighttp saveConfig): ao salvar, itens em que do E undo estao vazios/so espacos (trim) sao descartados; a lista resultante e enviada como array JSON; o servidor grava no sunshine.conf uma unica linha 'global_prep_cmd = <JSON compacto>' (nlohmann dump sem indentacao, chaves de cada objeto em ordem alfabetica: do, elevated, undo), por exemplo: global_prep_cmd = [{\"do\":\"cmd /c a.bat\",\"elevated\":false,\"undo\":\"cmd /c b.bat\"}]. Se a lista resultante for [] (igual ao default) a chave NAO e gravada (o painel original remove chaves iguais ao default antes do POST). Leitura: o valor no conf e uma string JSON (JSON.parse); ausente = []; JSON invalido no painel original lanca excecao no created() e interrompe o carregamento (no R3D PLAYConfig: capturar, avisar e NAO sobrescrever, ver _serializacao.md secao 8). Parser C++ (list_prep_cmd_f): le cada item com do/undo (string, default \"\") e elevated (bool, default false); comandos sao executados em ordem no 'do' antes do app e 'undo' em ordem inversa depois; se um 'do' falhar a inicializacao do app e abortada. Escopo (process.cpp:1274-1298): os comandos globais valem para todos os apps, exceto os que gravam exclude-global-prep-cmd = true, e entram ANTES dos prep-cmd do proprio app. do/undo vazios sao pulados na execucao; os undo rodam em ordem inversa so para os do que chegaram a rodar (terminate(), process.cpp:719). Os textos passam por parse_env_val (process.cpp:880): $(VAR) vira o valor da variavel de ambiente e $$ vira $ (ver a armadilha do '$(' sem ')' em apps.json)."
+        },
+        {
+          "key": "global_state_cmd",
+          "ui": "custom",
+          "label": "Comandos de Retomar/Pausar",
+          "help": "Configure uma lista de comandos a serem executados ao retomar (quando o primeiro cliente se conecta e nenhum cliente estava conectado) ou ao pausar (quando todos os clientes se desconectam) qualquer aplicativo.\nOs comandos Executar valem para retomar e os comandos Desfazer valem para pausar.\nCertifique-se de limpar quaisquer efeitos colaterais dos comandos nos comandos de desfazer dos comandos preparativos.\nObserve que o comando de pausa não será executado quando a sessão for encerrada.",
+          "default": [],
+          "platform": null,
+          "advanced": false,
+          "serialize": "json",
+          "widget": "cmd_do_undo_list",
+          "widgetConfig": {
+            "tableHiddenWhenEmpty": true,
+            "columns": [
+              {
+                "field": "do",
+                "label": "Executar Comando",
+                "icon": "play",
+                "input": "text",
+                "monospace": true
+              },
+              {
+                "field": "undo",
+                "label": "Desfazer Comando",
+                "icon": "undo",
+                "input": "text",
+                "monospace": true
+              },
+              {
+                "field": "elevated",
+                "label": "Executar como Administrador",
+                "icon": "shield",
+                "input": "checkbox",
+                "checkboxLabel": "Elevado",
+                "defaultHint": "Padrão: desmarcado",
+                "platform": [
+                  "windows"
+                ]
+              }
+            ],
+            "newItem": {
+              "do": "",
+              "undo": ""
+            },
+            "newItemByPlatform": {
+              "windows": {
+                "do": "",
+                "undo": "",
+                "elevated": false
+              }
+            },
+            "rowActions": [
+              {
+                "action": "remove",
+                "icon": "trash",
+                "style": "danger"
+              },
+              {
+                "action": "insertBefore",
+                "icon": "plus",
+                "style": "success"
+              }
+            ],
+            "addButtonLabel": "Adicionar",
+            "keepItemWhen": "trim(do) != '' || trim(undo) != ''",
+            "helpWhiteSpace": "pre-wrap"
+          },
+          "notes": "Identico ao widget de global_prep_cmd (mesmo componente, mesma estrutura {do, undo[, elevated no Windows]}, mesmas colunas \"Executar Comando\" / \"Desfazer Comando\" / \"Executar como Administrador\"+\"Elevado\" so no Windows, mesmos botoes lixeira, '+' e \"Adicionar\", mesmo filtro que descarta itens com do e undo vazios, mesma serializacao em linha unica 'global_state_cmd = [{...}]' com chaves em ordem alfabetica e omissao da chave quando a lista e []). Diferencas: so o rotulo e a ajuda (o texto de ajuda contem quebras de linha \\n e deve ser exibido com white-space: pre-wrap). Semantica: 'do' roda ao retomar (primeiro cliente conecta quando nao havia clientes) e 'undo' roda ao pausar (todos os clientes desconectam); o undo de pausa NAO roda quando a sessao termina. Observacao: o texto pt_BR deste rotulo/ajuda NAO existe em pt_BR.json nem em pt.json; foi traduzido do ingles (en.json: \"Resume/Pause Commands\"). Obs.: no painel original o template de novo item para 'state' tambem e o prepCmdTemplate ({do:\"\", undo:\"\"}). Escopo (process.cpp:1301-1326): valem para todos os apps, exceto os que gravam exclude-global-state-cmd = true, e entram ANTES dos state-cmd do proprio app; os textos passam por parse_env_val como nos preparativos. Executam em thread separada (resume() e pause(), process.cpp:604-704); a primeira falha interrompe o restante; do/undo vazios sao pulados; a pausa nao roda comandos se o app tem terminate-on-pause = true. Dentro da tabela vale a mesma regra do elevated com 'Padrao: desmarcado' descrita em global_prep_cmd."
+        },
+        {
+          "key": "server_cmd",
+          "ui": "custom",
+          "label": "Comandos de Servidor",
+          "help": "Configura uma lista de comandos a serem executados no servidor quando solicitados durante uma transmissão pelo cliente.",
+          "default": [],
+          "platform": null,
+          "advanced": false,
+          "serialize": "json",
+          "widget": "server_cmd_list",
+          "widgetConfig": {
+            "tableHiddenWhenEmpty": true,
+            "columns": [
+              {
+                "field": "name",
+                "label": "Nome do Comando",
+                "icon": "tag",
+                "input": "text",
+                "monospace": false
+              },
+              {
+                "field": "cmd",
+                "label": "Valor do Comando",
+                "icon": "terminal",
+                "input": "text",
+                "monospace": true
+              },
+              {
+                "field": "elevated",
+                "label": "Executar como Administrador",
+                "icon": "shield",
+                "input": "checkbox",
+                "checkboxLabel": "Elevado",
+                "platform": [
+                  "windows"
+                ]
+              }
+            ],
+            "newItem": {
+              "name": "",
+              "cmd": ""
+            },
+            "newItemByPlatform": {
+              "windows": {
+                "name": "",
+                "cmd": "",
+                "elevated": false
+              }
+            },
+            "rowActions": [
+              {
+                "action": "remove",
+                "icon": "trash",
+                "style": "danger"
+              },
+              {
+                "action": "insertBefore",
+                "icon": "plus",
+                "style": "success"
+              }
+            ],
+            "addButtonLabel": "Adicionar",
+            "keepItemWhen": "trim(name) != '' && trim(cmd) != ''",
+            "learnMore": {
+              "label": "Aprender Mais",
+              "url": "https://github.com/ClassicOldSong/R3D PLAY/wiki/Server-Commands",
+              "newTab": true
+            }
+          },
+          "notes": "Lista editavel de comandos nomeados que o cliente pode disparar durante a transmissao. Valor em memoria: array de objetos {\"name\": string, \"cmd\": string} e, SOMENTE no Windows, tambem \"elevated\": boolean (forcado a !!elevated ao carregar; itens novos nascem com elevated=false no Windows; em linux/macos o campo nao existe). Abaixo da ajuda ha o link \"Aprender Mais\" (rotulo _common.learn_more) para https://github.com/ClassicOldSong/R3D PLAY/wiki/Server-Commands (abre em nova aba). Colunas da tabela (so aparece quando ha ao menos 1 item): [1] icone tag + \"Nome do Comando\" (campo name, input texto comum), [2] icone terminal + \"Valor do Comando\" (campo cmd, input texto monoespacado), [3] SOMENTE Windows: icone escudo + cabecalho \"Executar como Administrador\" com um checkbox simples de rotulo \"Elevado\" por linha (campo elevated), [4] botoes a direita: lixeira vermelha (remove) e '+' verde (insere item vazio ANTES da linha). Botao verde \"+ Adicionar\" (rotulo \"Adicionar\") acrescenta item vazio ao final. Serializacao: ao salvar, itens sem name ou sem cmd (vazios/so espacos, trim) sao descartados; array resultante vai como JSON e o servidor grava uma unica linha 'server_cmd = <JSON compacto>' com chaves de cada objeto em ordem alfabetica (cmd, elevated, name), por exemplo: server_cmd = [{\"cmd\":\"bubbles.scr\",\"elevated\":false,\"name\":\"Bubbles\"}]. Lista vazia ([] = default) nao e gravada. Leitura: string JSON no conf (JSON.parse); ausente = []; JSON invalido no painel original lanca excecao no created() e interrompe o carregamento (no R3D PLAYConfig: capturar, avisar e NAO sobrescrever, ver _serializacao.md secao 8). Parser C++ (list_server_cmd_f): le name e cmd (string, default \"\") e elevated (bool, default false). Particularidade: no Windows, se o sunshine.conf nao existir, o R3D PLAY cria o arquivo ja com 'server_cmd = [{\"name\":\"Bubbles\",\"cmd\":\"bubbles.scr\",\"elevated\":false}]' (config.cpp, parse()), embora o default do painel continue sendo []. Permissao: so clientes pareados com a permissao 'Comandos de servidor' (permissions.server_cmd no pt_BR.json; crypto::PERM::server_cmd) recebem a lista de nomes (nvhttp.cpp:983-992) e podem dispara-los (stream.cpp:1004-1035, pelo indice na ordem da lista). O servidor executa cmd SEM parse_env_val, destacado (detach), sem esperar o termino, e elevated so tem efeito no Windows."
+        },
+        {
+          "key": "enable_pairing",
+          "ui": "toggle",
+          "label": "Ativar Pareamento",
+          "help": "Ativa pareamento com um cliente Moonlight. Isso permite o cliente autenticar com o servidor e estabelecer uma conexão segura.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "Checkbox.vue recebe default=\"true\" e por isso exibe, logo abaixo do rotulo, o texto 'Padrão: marcado' (_common.enabled_def_cbox); derivar de default. C++ (nvhttp.cpp:718): com o pareamento desativado, o endpoint de pareamento responde 403 'Pairing is disabled for this instance'. General.vue também força 'enabled' se a chave não existir (igual ao default)."
+        },
+        {
+          "key": "enable_discovery",
+          "ui": "toggle",
+          "label": "Ativar Descoberta Automática",
+          "help": "Quando desativado, será necessário inserir manualmente o IP do host no cliente para fazer o pareamento.",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "config.enable_discovery e config.enable_discovery_desc NÃO existem em pt_BR.json nem em pt.json (o painel original cai no fallback em inglês: \"Enable Auto Discovery\" / \"When disabled, you'll need to manually enter host IP on the client to pair.\"); label e help foram traduzidos do inglês. Checkbox.vue recebe default=\"true\" e por isso exibe, logo abaixo do rotulo, o texto 'Padrão: marcado' (_common.enabled_def_cbox); derivar de default. C++ (main.cpp:415): se desativado, o R3D PLAY não publica o serviço mDNS de descoberta."
+        },
+        {
+          "key": "notify_pre_releases",
+          "ui": "toggle",
+          "label": "Notificações de pré-lançamento",
+          "help": "Se deseja ser notificado sobre novas versões de pré-lançamento do R3D PLAY",
+          "default": "disabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "Checkbox.vue recebe default=\"false\" e por isso exibe, logo abaixo do rotulo, o texto 'Padrão: desmarcado' (_common.disabled_def_cbox); derivar de default. Só o painel web usa esta chave (index.html lê config.notify_pre_releases para avisar de versões de pré-lançamento no GitHub); no C++ ela é apenas lida (config.cpp:1302), sem efeito no servidor."
+        },
+        {
+          "key": "system_tray",
+          "ui": "toggle",
+          "label": "Ativar ícone na bandeja do sistema",
+          "help": "Se deve exibir o ícone do R3D PLAY na bandeja do sistema",
+          "default": "enabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "config.system_tray e config.system_tray_desc NÃO existem em pt_BR.json nem em pt.json (o painel original cai no fallback em inglês: \"Enable System Tray\" / \"Whether to show R3D PLAY icon in the system tray\"); label e help foram traduzidos do inglês. Checkbox.vue recebe default=\"true\" e por isso exibe, logo abaixo do rotulo, o texto 'Padrão: marcado' (_common.enabled_def_cbox); derivar de default. C++ (main.cpp:123,442): o ícone só é criado se esta chave estiver ligada e o build tiver bandeja; a mudança vale após reiniciar."
+        },
+        {
+          "key": "hide_tray_controls",
+          "ui": "toggle",
+          "label": "Esconder controles no ícone de bandeja",
+          "help": "Não exibir \"Forçar fechamento\", \"Reiniciar\" e \"Sair\" do menu do ícone de bandeja.",
+          "default": "disabled",
+          "platform": null,
+          "advanced": false,
+          "serialize": "enabled_disabled",
+          "notes": "Checkbox.vue recebe default=\"false\" e por isso exibe, logo abaixo do rotulo, o texto 'Padrão: desmarcado' (_common.disabled_def_cbox); derivar de default. C++ (system_tray.cpp:458, em init_tray_threaded, usada só no Windows; main.cpp:444-453): corta o menu da bandeja depois de 'Open R3D PLAY' (menu[1].text = nullptr), escondendo também 'Reset Display Device Config' (Windows) além de Forçar fechamento, Reiniciar e Sair. Em Linux/macOS, init_tray não lê a chave. Só faz diferença com system_tray ligado."
+        }
+      ]
+    }
+  ]
+}

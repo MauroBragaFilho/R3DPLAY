@@ -1,0 +1,142 @@
+/* Tela Início (js/views/home.js). Classes com prefixo .hm-; reaproveita .hero, .steps, .chips, .stat de style.css e os componentes de components.css. */
+
+/* ---- Cartão principal (estado do servidor) ---- */
+.hm-hero { align-items: flex-start; }
+.hm-hero-text { flex: 1; min-width: 0; }
+.hm-hero h2 { overflow-wrap: anywhere; }
+.hm-hero-title:focus { outline: none; }   /* o título só recebe foco por código (quando o botão some): sem anel */
+.hm-hero .muted { max-width: 72ch; line-height: 1.5; }
+.hm-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.hm-badges:empty { display: none; }
+.hm-game { color: var(--cyan); }
+.hm-meta { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 12px; font: 12px var(--mono); color: var(--dim); }
+.hm-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+.hm-meta-item .ms { font-size: 16px; }
+.hm-hero-actions { flex-shrink: 0; align-self: center; }
+.hm-hero .hero-icon .spinner { width: 26px; height: 26px; border-width: 3px; }
+.hero.ok .hero-icon { background: rgba(144,186,60,.18); color: var(--ok); }
+.hero.warn .hero-icon { background: rgba(255,176,46,.16); color: var(--warn); }
+.hero.live .hero-icon { animation: hm-pulse 1.8s ease-in-out infinite; }
+@keyframes hm-pulse { 50% { background: rgba(255,38,64,.42); } }
+@media (max-width: 760px) {
+  .hm-hero { flex-wrap: wrap; }
+  .hm-hero-actions { width: 100%; }
+  .hm-hero-actions .btn { width: 100%; }
+}
+
+/* ---- Aviso do driver de tela virtual ---- */
+.hm-vdisplay { align-items: center; }
+.hm-vdisplay > .ms { color: var(--warn); font-size: 24px; }
+.hm-vd-text { flex: 1; min-width: 0; }
+.hm-vd-text p { margin: 2px 0 0; line-height: 1.45; }
+.hm-vdisplay .btn { flex-shrink: 0; }
+@media (max-width: 760px) { .hm-vdisplay { flex-wrap: wrap; } }
+
+/* ---- Linha principal: conectar um celular + (resumo e atalhos) ---- */
+.hm-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.hm-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+@media (max-width: 980px) { .hm-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* Conectar um celular. Sem nenhum celular pareado o cartão ganha um contorno vermelho (o cartão tem chanfro: o contorno é interno). */
+.hm-connect.hm-focus { box-shadow: inset 0 0 0 1px rgba(255,38,64,.6), inset 0 0 40px rgba(255,38,64,.1); }
+.hm-steps { gap: 14px; margin-bottom: 0; }
+.hm-steps li { display: flex; align-items: flex-start; gap: 12px; }
+.hm-steps li > b { flex: 0 0 26px; height: 26px; display: grid; place-items: center; background: var(--input); clip-path: var(--clip); font-size: 12px; }
+.hm-step-body { flex: 1; min-width: 0; line-height: 1.55; padding-top: 2px; }
+.hm-step-body strong { color: var(--white); }
+.hm-chips { margin: 10px 0 6px; }
+.hm-chip { cursor: pointer; transition: background .2s var(--ease); }
+.hm-chip .ms { font-size: 16px; color: var(--cyan); }
+.hm-chip small { white-space: nowrap; }
+.hm-chip.copied .ms { color: var(--ok); }
+.hm-chip-skel { display: inline-block; width: 190px; height: 34px; clip-path: var(--clip); }
+.hm-hint { margin: 0; color: var(--dim); font-size: 12px; line-height: 1.45; }
+.hm-note-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: var(--dim); font-size: 13px; line-height: 1.45; }
+.hm-note-row .ms { color: var(--warn); }
+.hm-connect .row-actions { margin-top: 20px; }
+
+/* Resumo: três números que levam à aba correspondente */
+.hm-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.hm-stat { text-align: left; border: 0; color: inherit; cursor: pointer; transition: background .2s var(--ease); }
+.hm-stat:hover { background: var(--card-hover); }
+.hm-stat span { margin-top: 2px; }
+.hm-stat small { margin-top: 4px; color: var(--dim); font-size: 12px; line-height: 1.35; }
+.hm-tile-skel { display: block; height: 96px; clip-path: var(--clip); }
+@media (max-width: 460px) { .hm-tiles { grid-template-columns: minmax(0, 1fr); } }
+
+/* Atalhos */
+.hm-shortcuts { display: flex; flex-wrap: wrap; gap: 10px; }
+.hm-shortcuts .btn .ms { font-size: 18px; }
+
+/* ---- Uso do PC ---- */
+.hm-usage-section { display: flex; flex-direction: column; }
+.hm-usage-section > .card-head { margin-bottom: 12px; }
+.hm-usage-section > .card-head h3 { flex: 0 0 auto; }
+.hm-live-note { margin-left: auto; font: 11px var(--mono); color: var(--dim); }
+.hm-usage-section > .banner { margin-bottom: 12px; }
+.hm-usage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1000px) { .hm-usage { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .hm-usage { grid-template-columns: minmax(0, 1fr); } }
+
+.hm-metric { display: flex; flex-direction: column; min-height: 176px; padding: 16px 18px 18px; }
+.hm-head { display: flex; align-items: center; gap: 8px; min-height: 24px; margin-bottom: 8px; }
+/* Título do cartão de uso: h4 (a seção "Uso do PC" é o h3), com o mesmo visual de rótulo "// TÍTULO" */
+.hm-head h4 { flex: 1; min-width: 0; margin: 0; font: 700 11px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: rgba(45,226,230,.85); }
+.hm-head h4::before { content: '// '; }
+.hm-body { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
+.hm-value { display: flex; align-items: baseline; gap: 2px; }
+.hm-num { font: 700 34px/1.1 var(--mono); color: var(--white); }
+.hm-unit { font: 14px var(--mono); color: var(--cyan); }
+.hm-sub { margin: 0; font: 12px var(--mono); color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hm-extra { margin: 0; font: 11px var(--mono); color: var(--dim); }
+.hm-meter { height: 10px; margin-top: 4px; }
+/* Todas as faixas com cor sólida: o degradê padrão do .meter termina em vermelho e faria uma barra saudável parecer alarme */
+.hm-meter.ok > i { background: var(--cyan); }
+.hm-meter.warn > i { background: var(--warn); }
+.hm-meter.bad > i { background: var(--accent); }
+.hm-meter.off > i { background: var(--faint); }
+.hm-metric[data-state="off"] .hm-num { color: var(--faint); }
+
+/* Carregando: esqueletos no lugar do conteúdo (a altura do cartão não pula quando os números chegam) */
+.hm-metric[data-state="loading"] > .hm-body { display: none; }
+.hm-metric:not([data-state="loading"]) > .hm-skel { display: none; }
+.hm-skel { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 12px; }
+.hm-skel .skeleton:nth-child(1) { height: 34px; width: 45%; }
+.hm-skel .skeleton:nth-child(2) { height: 14px; width: 70%; }
+.hm-skel .skeleton:nth-child(3) { height: 10px; }
+
+/* Placa de vídeo: com mais de uma, o cartão inteiro alterna */
+.hm-switch { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; background: var(--input); color: var(--cyan); font: 700 11px var(--mono); clip-path: var(--clip); }
+.hm-switch:hover { background: var(--card-hover); }
+.hm-switch .ms { font-size: 16px; }
+.hm-metric.can-switch { cursor: pointer; transition: background .2s var(--ease); }
+.hm-metric.can-switch:hover { background: var(--card-hover); }
+
+/* Armazenamento e temperatura */
+.hm-body-list { justify-content: flex-start; }
+.hm-list { display: flex; flex-direction: column; gap: 14px; }
+.hm-disk-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; font-size: 12px; color: var(--dim); }
+.hm-disk-top strong { font: 700 13px var(--mono); color: var(--white); }
+.hm-disk-top span { text-align: right; }
+.hm-temp-item .hm-meter { height: 6px; margin-top: 6px; }
+.hm-temp { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.hm-temp span { color: var(--dim); font-size: 13px; }
+.hm-temp strong { font: 700 20px var(--mono); white-space: nowrap; }
+.hm-temp strong.ok { color: var(--cyan); }
+.hm-temp strong.warn { color: var(--warn); }
+.hm-temp strong.bad { color: var(--accent); }
+.hm-temp strong.off { color: var(--dim); font-size: 13px; font-weight: 400; }
+
+/* ---- Nota de falha do uso (com botão quando o motivo é uma opção das configurações) ---- */
+.hm-usage-section > .banner > span { flex: 1; min-width: 0; line-height: 1.45; }
+.hm-note-btn { flex-shrink: 0; margin-left: auto; padding: 6px 14px; }
+@media (max-width: 760px) { .hm-usage-section > .banner { flex-wrap: wrap; } .hm-note-btn { margin-left: 0; } }
+.hm-offline-note { margin-top: 14px; }
+
+/* ---- Foco do teclado ----
+   Os controles daqui têm cantos chanfrados (clip-path), que cortam o contorno padrão (fica fora da caixa).
+   O anel é desenhado por dentro; o contorno transparente continua valendo no modo de alto contraste do Windows. */
+#screen-home :is(.btn, .hm-chip, .hm-stat, .hm-switch):focus-visible {
+  outline: 2px solid transparent; outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px var(--cyan);
+}
