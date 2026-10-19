@@ -12,7 +12,7 @@ namespace ApolloConfig;
 
 /// <summary>Fala com a API do Apollo (https://localhost) com sessão própria e login automático.</summary>
 internal sealed class ApolloClient {
-  private readonly HttpClient http;
+  private HttpClient http;
   private readonly string baseUrl;
   private static readonly string CredFile = Path.Combine(DataDir, "cred.dat");
 
@@ -20,12 +20,32 @@ internal sealed class ApolloClient {
 
   public ApolloClient(string baseUrl) {
     this.baseUrl = baseUrl.TrimEnd('/');
+    http = NewHttp();
+  }
+
+  private static HttpClient NewHttp() {
     var handler = new HttpClientHandler {
       CookieContainer = new CookieContainer(),
       AllowAutoRedirect = false,
       ServerCertificateCustomValidationCallback = (_, _, _, _) => true,  // certificado autoassinado em localhost
     };
-    http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+    return new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+  }
+
+  /// <summary>Descarta o cookie de sessão (sair da conta): o HttpClient guardaria o cookie antigo.</summary>
+  public void ResetSession() {
+    var old = http;
+    http = NewHttp();
+    old.Dispose();
+  }
+
+  /// <summary>O servidor declara windows-1252 no /api/logs, mas grava UTF-8: decodifica os bytes como UTF-8 e só cai no Latin-1 se não for válido.</summary>
+  private static string Decode(byte[] raw) {
+    try {
+      return new UTF8Encoding(false, true).GetString(raw);
+    } catch (DecoderFallbackException) {
+      return Encoding.Latin1.GetString(raw);
+    }
   }
 
   public bool HasCredentials => File.Exists(CredFile);
@@ -59,6 +79,8 @@ internal sealed class ApolloClient {
   public async Task<(int Status, string Body)> SendAsync(string method, string path, string? body) {
     for (var attempt = 0; attempt < 2; attempt++) {
       using var req = new HttpRequestMessage(new HttpMethod(method), baseUrl + path);
+      // O servidor recusa POST sem Content-Type JSON (400), então todo método que não é GET leva ao menos {}.
+      if (body == null && method != "GET" && method != "HEAD") body = "{}";
       if (body != null) req.Content = new StringContent(body, Encoding.UTF8, "application/json");
       HttpResponseMessage res;
       try {
@@ -67,7 +89,7 @@ internal sealed class ApolloClient {
         return (0, ex.Message);  // Apollo fora do ar
       }
       using (res) {
-        var text = await res.Content.ReadAsStringAsync();
+        var text = Decode(await res.Content.ReadAsByteArrayAsync());
         if (res.StatusCode == HttpStatusCode.Unauthorized && attempt == 0 && LoadCredentials() is var (u, p) && await LoginAsync(u, p)) {
           continue;  // sessão expirou: entrou de novo com a senha guardada
         }
@@ -135,6 +157,7 @@ internal sealed class MainForm : Form {
         }
         case "logout":
           api.ClearCredentials();
+          api.ResetSession();
           result = new JsonObject { ["ok"] = true };
           break;
         case "hasCreds":
@@ -161,6 +184,16 @@ internal sealed class MainForm : Form {
         case "cover": {
           var png = await CoverFetcher.GetPngAsync(m["source"]!.GetValue<string>(), m["gameId"]!.GetValue<string>(), m["name"]!.GetValue<string>());
           result = new JsonObject { ["data"] = png == null ? null : Convert.ToBase64String(png) };
+          break;
+        }
+        case "stats": {  // uso do PC (CPU, RAM, GPU, discos, FPS): endpoint HTTP aberto à rede local, sem senha
+          using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+          var port = m["port"]?.GetValue<int>() ?? 47989;
+          try {
+            result = new JsonObject { ["ok"] = true, ["body"] = await http.GetStringAsync($"http://localhost:{port}/r3d/stats") };
+          } catch (Exception ex) {
+            result = new JsonObject { ["ok"] = false, ["error"] = ex.Message };
+          }
           break;
         }
         case "info":

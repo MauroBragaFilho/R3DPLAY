@@ -3,6 +3,10 @@
 
 set(CPACK_NSIS_INSTALLED_ICON_NAME "${PROJECT__DIR}\\\\${PROJECT_EXE}")
 
+# R3D PLAY: nome exibido no instalador e em "Aplicativos" do Windows (a pasta e o nome técnico continuam "Apollo" para atualizar sem duplicar)
+set(CPACK_NSIS_DISPLAY_NAME "R3D PLAY")
+set(CPACK_NSIS_PACKAGE_NAME "R3D PLAY")
+
 # Extra install commands
 # Restores permissions on the install directory
 # Migrates config files from the root into the new config folder
@@ -59,12 +63,12 @@ set(CPACK_NSIS_INSTALLED_ICON_NAME "sunshine.exe")
 set(CPACK_NSIS_CREATE_ICONS_EXTRA
         "${CPACK_NSIS_CREATE_ICONS_EXTRA}
         SetOutPath '\$INSTDIR'
-        CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${CMAKE_PROJECT_NAME}.lnk' \
+        CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\R3D PLAY.lnk' \
             '\$INSTDIR\\\\sunshine.exe' '--shortcut'
         ")
 set(CPACK_NSIS_DELETE_ICONS_EXTRA
         "${CPACK_NSIS_DELETE_ICONS_EXTRA}
-        Delete '\$SMPROGRAMS\\\\$MUI_TEMP\\\\${CMAKE_PROJECT_NAME}.lnk'
+        Delete '\$SMPROGRAMS\\\\$MUI_TEMP\\\\R3D PLAY.lnk'
         ")
 
 # Checking for previous installed versions

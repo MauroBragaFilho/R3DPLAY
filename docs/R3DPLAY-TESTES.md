@@ -1,26 +1,26 @@
-# Estado dos testes — R3DCORE + R3D PLAY
+# Estado dos testes — R3D LAUNCHER + R3D PLAY
 
 Atualizado em 2026-10-19 (segunda rodada). Aparelho: Galaxy A51 (SM-A515F, Android 13, `RX8N2025JQX`). PC: `MNBF-NEON` (Windows 11, i5-11300H, Intel Iris Xe + GTX 1650).
-Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroarch`), Apollo/R3D PLAY instalado em `C:\Program Files\Apollo`.
+Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroarch`), R3D PLAY instalado em `C:\Program Files\Apollo` (a pasta e o serviço `ApolloService` mantêm o nome antigo para atualizar por cima sem duplicar).
 
 ## Verificado (funcionou)
 
 | Área | O que foi visto |
 |---|---|
-| Apollo no PC | Compila no MSYS2, instala com `scripts/install-r3dplay.ps1`, serviço `ApolloService` sobe. |
+| R3D PLAY no PC | Compila no MSYS2, instala com `scripts/install-r3dplay.ps1`, serviço `ApolloService` sobe. |
 | Endpoints do PC | `/r3d/library` (21 jogos), `/r3d/cover` (PNG válido), `/r3d/stats` (CPU, RAM, GPUs, discos, temperaturas). |
-| Janela R3D PLAY | Login automático, 19 jogos detectados (Steam e Epic), capas gravadas no Apollo, pareamento por PIN, nova interface (abas no topo). |
+| Janela R3D PLAY | Login automático, 19 jogos detectados (Steam e Epic), capas gravadas no R3D PLAY, pareamento por PIN, nova interface (abas no topo). |
 | Permissões | Aparelho recém-pareado vinha só com "ver/listar" (erro 403 ao iniciar). Corrigido: a janela libera tudo ao parear. |
 | Launcher › Biblioteca | Coleção "PC" com 21 jogos e capas; capas baixadas do PC. |
 | Moonlight embutido | Parear (PIN digitado no PC) e transmitir o "Desktop" dentro do launcher, sem o app Moonlight. |
 | RetroArch embutido | Aladdin (SNES) abriu pelo motor "RetroArch embutido", com o `retroarch.cfg` migrado do fork. |
-| Stream pelo launcher | Biblioteca › PC › Desktop › JOGAR transmitiu o PC; o Apollo mostrou "Desktop" como app em execução e `/r3d/stats` marcou transmissão ao vivo a ~60 FPS. |
+| Stream pelo launcher | Biblioteca › PC › Desktop › JOGAR transmitiu o PC; o R3D PLAY mostrou "Desktop" como app em execução e `/r3d/stats` marcou transmissão ao vivo a ~60 FPS. |
 | Jogo real do PC | Half-Life 2 pelo launcher (Biblioteca › PC › JOGAR): abriu no PC, transmitiu a ~60 FPS com a GTX 1650 em ~27% de uso, tela e toques funcionando; `/r3d/stats` mostrou "ao vivo". |
 | Resolução nativa + argumentos por motor | O celular pede 2400x1080 (nativo) e o Half-Life 2 abre com `-w 2400 -h 1080 -windowed -noborder`; a imagem enche o celular sem barras, a 60 FPS (hevc_nvenc, decodificação HEVC por hardware no A51). Motores reconhecidos: Source, Unity, Unreal e Godot (jogos Steam); os demais abrem pelo `steam://` normal. |
 | Vários PCs (launcher) | A tela Config › Computador lista os PCs conhecidos e tem "Procurar PCs na rede e sincronizar", "Adicionar PC por este endereço" e "Esquecer todos os PCs"; o PC atual foi migrado e sincronizou os 21 jogos. |
-| Instalador completo | `scripts/gerar-instalador.sh` gerou `Apollo.exe` (NSIS, 78 MB) com serviço, firewall, driver de tela virtual, controle virtual e a janela R3D PLAY autocontida (testei a janela publicada abrindo sozinha, sem .NET instalado à parte). |
-| Fechar jogo ao sair | Sair do stream (Voltar) fez o Apollo encerrar o app e o `--close-dir` fechou o `hl2.exe` em segundos, sem fechar a Steam (testado 2 vezes). |
-| Tela cheia sem esticar | O celular pede 2144x964 (proporção 20:9) e o Apollo cria uma tela virtual dessa resolução (log: "Virtual Display created", "Desktop resolution [2144x964]"); a área de trabalho encheu o celular sem barras. O Moonlight ainda preenche sem esticar se sobrar proporção (Config › Computador › Tela do jogo). Ao sair, o jogo fecha, a tela virtual some e a do notebook volta como principal. |
+| Instalador completo | `scripts/gerar-instalador.sh` gerou `R3DPLAY-Setup.exe` (NSIS, 78 MB) com serviço, firewall, driver de tela virtual, controle virtual e a janela R3D PLAY autocontida (testei a janela publicada abrindo sozinha, sem .NET instalado à parte). |
+| Fechar jogo ao sair | Sair do stream (Voltar) fez o R3D PLAY encerrar o app e o `--close-dir` fechou o `hl2.exe` em segundos, sem fechar a Steam (testado 2 vezes). |
+| Tela cheia sem esticar | O celular pede 2144x964 (proporção 20:9) e o R3D PLAY cria uma tela virtual dessa resolução (log: "Virtual Display created", "Desktop resolution [2144x964]"); a área de trabalho encheu o celular sem barras. O Moonlight ainda preenche sem esticar se sobrar proporção (Config › Computador › Tela do jogo). Ao sair, o jogo fecha, a tela virtual some e a do notebook volta como principal. |
 | RetroArch embutido (2º jogo) | Super Metroid (SNES) abriu e rodou (cena de introdução), sem o app RetroArch instalado à parte. |
 | PS2 | Sem o pcsx2 embutido nem o NetherSX2 instalado, os jogos de PS2 abrem no app RetroArch do fork (`com.retroarch.r3dcore`), ainda instalado. |
 | Sistema › PC | Cartões de CPU, RAM, GPU, armazenamento, térmico e transmissão com dados reais; toque no cartão GPU alterna Intel ⇄ NVIDIA. |
@@ -41,12 +41,14 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 
 ## Problemas conhecidos / observações
 
-- **Tela virtual (SudoVDA) funciona depois da correção**: o Windows não ativava sozinho o monitor virtual novo; o Apollo agora roda `DisplaySwitch /extend` na sessão do usuário e a tela é criada na resolução pedida pelo celular (2144x964). Com `dd_configuration_option = ensure_primary` a tela virtual vira a principal durante o jogo e a do notebook volta ao fim. Jogos que fixam a própria resolução (ex.: Half-Life 2 em 1920x1080) ainda mostram barras: é preciso escolher a resolução do celular nas opções do jogo.
-- Fechar a sessão pelo Apollo **não fecha o jogo da Steam** no PC (ele abre por `steam://` separado): o `hl2.exe` ficou aberto até eu encerrá-lo à mão.
+- **Tela virtual (SudoVDA) funciona depois da correção**: o Windows não ativava sozinho o monitor virtual novo; o R3D PLAY agora roda `DisplaySwitch /extend` na sessão do usuário e a tela é criada na resolução pedida pelo celular (2144x964). Com `dd_configuration_option = ensure_primary` a tela virtual vira a principal durante o jogo e a do notebook volta ao fim. Jogos da Steam de motor conhecido (Source, Unity, Unreal, Godot) já abrem na resolução do celular pelos argumentos de linha de comando; os demais podem mostrar barras até você escolher a resolução nas opções do jogo.
+- Jogos abertos por `steam://` só fecham ao sair do stream porque o R3D PLAY roda o comando de "desfazer" (`--close-dir`) com a pasta do jogo; jogos de outros launchers dependem do mesmo mecanismo, ainda não testado com eles.
 - Antes o **Steam Big Picture** abriu ao tentar o "Desktop": foi um toque meu na grade do Moonlight, não erro do launcher (na repetição abriu o Desktop).
 - Primeira abertura do Moonlight embutido: é preciso parear de novo (os dados do app Moonlight separado não migram).
 - O launcher precisa de "Acesso a todos os arquivos" para o RetroArch abrir ROMs (`adb shell appops set com.r3dcore.launcher MANAGE_EXTERNAL_STORAGE allow`).
 - O `adb` às vezes mostra o A51 como `offline` com o cabo conectado: `adb reconnect offline` resolve.
 - Temperatura da GPU Intel não é exposta pelo Windows (aparece N/D).
 - `/r3d/*` ficam abertos à rede local sem senha; desligue com `share_library = disabled` no `sunshine.conf`.
-- O R3D PLAY depende do .NET 8 instalado no PC.
+- A janela R3D PLAY publicada é autocontida (não precisa do .NET instalado); o WebView2 do Windows 10/11 é necessário.
+- **Rebrand (2026-10-19)**: ícone "R" do fork do RetroArch no launcher (ícone do app, cabeçalho, menu rápido), nome "R3D LAUNCHER" e "R3D PLAY" no PC (bandeja, janela, instalador, atalho do menu Iniciar, serviço). O APK novo foi instalado e o logo conferido no A51; o instalador do PC com os novos ícones ainda não foi instalado/testado.
+- Nomes técnicos mantidos de propósito para atualizar por cima: pasta `C:\Program Files\Apollo`, serviço `ApolloService`, regras de firewall, `ApolloConfig.exe` e a pasta `%LOCALAPPDATA%\ApolloConfig`.

@@ -27,7 +27,7 @@
     #include <dispatch/dispatch.h>
   #endif
 
-  #define TRAY_MSG_NO_APP_RUNNING "Reload Apps"
+  #define TRAY_MSG_NO_APP_RUNNING "Recarregar jogos"
 
   #ifndef BOOST_PROCESS_VERSION
     #define BOOST_PROCESS_VERSION 1
@@ -111,11 +111,11 @@ namespace system_tray {
   // Tray menu
   static struct tray tray = {
     .icon = TRAY_ICON,
-    .tooltip = PROJECT_NAME,
+    .tooltip = "R3D PLAY",
     .menu =
       (struct tray_menu[]) {
         // todo - use boost/locale to translate menu strings
-        { .text = "Open Apollo", .cb = tray_open_ui_cb },
+        { .text = "Abrir R3D PLAY", .cb = tray_open_ui_cb },
         { .text = "-" },
         // { .text = "-" },
         // { .text = "Donate",
@@ -130,10 +130,10 @@ namespace system_tray {
         { .text = TRAY_MSG_NO_APP_RUNNING, .cb = tray_force_stop_cb },
   // Currently display device settings are only supported on Windows
   #ifdef _WIN32
-        {.text = "Reset Display Device Config", .cb = tray_reset_display_device_config_cb},
+        {.text = "Redefinir tela do PC", .cb = tray_reset_display_device_config_cb},
   #endif
-        {.text = "Restart", .cb = tray_restart_cb},
-        {.text = "Quit", .cb = tray_quit_cb},
+        {.text = "Reiniciar", .cb = tray_restart_cb},
+        {.text = "Sair", .cb = tray_quit_cb},
         {.text = nullptr}
       },
     .iconPathCount = 4,
@@ -248,18 +248,18 @@ namespace system_tray {
 
     tray_update(&tray);
     tray.icon = TRAY_ICON_PLAYING;
-    tray.notification_title = "App launched";
+    tray.notification_title = "Jogo iniciado";
     char msg[256];
     static char force_close_msg[256];
-    snprintf(msg, std::size(msg), "%s launched.", app_name.c_str());
-    snprintf(force_close_msg, std::size(force_close_msg), "Force close [%s]", app_name.c_str());
+    snprintf(msg, std::size(msg), "%s iniciado.", app_name.c_str());
+    snprintf(force_close_msg, std::size(force_close_msg), "Fechar [%s]", app_name.c_str());
   #ifdef _WIN32
     strncpy(msg, utf8ToAcp(msg).c_str(), std::size(msg) - 1);
     strncpy(force_close_msg, utf8ToAcp(force_close_msg).c_str(), std::size(force_close_msg) - 1);
   #endif
     tray.notification_text = msg;
     tray.notification_icon = TRAY_ICON_PLAYING;
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray.menu[2].text = force_close_msg;
     tray_update(&tray);
   }
@@ -276,15 +276,15 @@ namespace system_tray {
     tray.icon = TRAY_ICON_PAUSING;
     tray_update(&tray);
     char msg[256];
-    snprintf(msg, std::size(msg), "Streaming paused for %s", app_name.c_str());
+    snprintf(msg, std::size(msg), "Transmissão pausada: %s", app_name.c_str());
   #ifdef _WIN32
     strncpy(msg, utf8ToAcp(msg).c_str(), std::size(msg) - 1);
   #endif
     tray.icon = TRAY_ICON_PAUSING;
-    tray.notification_title = "Stream Paused";
+    tray.notification_title = "Transmiss\xe3o pausada";  // ANSI (CP1252): a bandeja do Windows não lê UTF-8
     tray.notification_text = msg;
     tray.notification_icon = TRAY_ICON_PAUSING;
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray_update(&tray);
   }
 
@@ -300,15 +300,15 @@ namespace system_tray {
     tray.icon = TRAY_ICON;
     tray_update(&tray);
     char msg[256];
-    snprintf(msg, std::size(msg), "Streaming stopped for %s", app_name.c_str());
+    snprintf(msg, std::size(msg), "Transmissão encerrada: %s", app_name.c_str());
   #ifdef _WIN32
     strncpy(msg, utf8ToAcp(msg).c_str(), std::size(msg) - 1);
   #endif
     tray.icon = TRAY_ICON;
     tray.notification_icon = TRAY_ICON;
-    tray.notification_title = "Application Stopped";
+    tray.notification_title = "Aplicativo encerrado";
     tray.notification_text = msg;
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray.menu[2].text = TRAY_MSG_NO_APP_RUNNING;
     tray_update(&tray);
   }
@@ -332,13 +332,13 @@ namespace system_tray {
   #endif
     tray.icon = TRAY_ICON;
     tray.notification_icon = TRAY_ICON;
-    tray.notification_title = "Launch Error";
+    tray.notification_title = "Erro ao iniciar";
     tray.notification_text = msg;
     tray.notification_cb = []() {
       BOOST_LOG(info) << "Force stop from notification"sv;
       proc::proc.terminate();
     };
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray_update(&tray);
   }
 
@@ -354,10 +354,10 @@ namespace system_tray {
     tray.icon = TRAY_ICON;
     tray_update(&tray);
     tray.icon = TRAY_ICON;
-    tray.notification_title = "Incoming Pairing Request";
-    tray.notification_text = "Click here to complete the pairing process";
+    tray.notification_title = "Pedido de pareamento";
+    tray.notification_text = "Clique aqui para concluir o pareamento";
     tray.notification_icon = TRAY_ICON_LOCKED;
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray.notification_cb = []() {
       launch_ui("/pin#PIN");
     };
@@ -383,7 +383,7 @@ namespace system_tray {
     tray.notification_title = "Device Paired Succesfully";
     tray.notification_text = msg;
     tray.notification_icon = TRAY_ICON;
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray_update(&tray);
   }
 
@@ -407,7 +407,7 @@ namespace system_tray {
     tray.notification_title = "Client Connected";
     tray.notification_text = msg;
     tray.notification_icon = TRAY_ICON;
-    tray.tooltip = PROJECT_NAME;
+    tray.tooltip = "R3D PLAY";
     tray_update(&tray);
   }
 
@@ -448,10 +448,10 @@ namespace system_tray {
     }
 
   #ifdef _WIN32
-    std::string tmp_str = "Open Apollo (" + config::nvhttp.sunshine_name + ":" + std::to_string(net::map_port(confighttp::PORT_HTTPS)) + ")";
+    std::string tmp_str = "Abrir R3D PLAY (" + config::nvhttp.sunshine_name + ":" + std::to_string(net::map_port(confighttp::PORT_HTTPS)) + ")";
     static const std::string title_str = utf8ToAcp(tmp_str);
   #else
-    static const std::string title_str = "Open Apollo (" + config::nvhttp.sunshine_name + ":" + std::to_string(net::map_port(confighttp::PORT_HTTPS)) + ")";
+    static const std::string title_str = "Abrir R3D PLAY (" + config::nvhttp.sunshine_name + ":" + std::to_string(net::map_port(confighttp::PORT_HTTPS)) + ")";
   #endif
     tray.menu[0].text = title_str.c_str();
 

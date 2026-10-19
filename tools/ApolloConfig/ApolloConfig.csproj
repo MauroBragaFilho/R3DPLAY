@@ -7,6 +7,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>..\..\apollo.ico</ApplicationIcon>
     <AssemblyName>ApolloConfig</AssemblyName>
+    <AssemblyTitle>R3D PLAY</AssemblyTitle>
+    <Product>R3D PLAY</Product>
+    <Description>R3D PLAY – configuração e biblioteca de jogos</Description>
+    <Company>Braga Digital Studio</Company>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
@@ -14,6 +18,6 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ui\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="ui\**\*" Exclude="ui\**\*.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

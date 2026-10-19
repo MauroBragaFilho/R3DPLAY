@@ -1,4 +1,24 @@
-# Apollo
+# R3D PLAY
+
+<img src="branding/r3d-logo-256.png" width="96" align="right" alt="R3D PLAY">
+
+Transmita os jogos do seu PC para o celular, sem abrir navegador para configurar. O R3D PLAY é um fork do
+[Apollo](https://github.com/ClassicOldSong/Apollo) (que por sua vez deriva do Sunshine) com:
+
+- **Janela nativa** (`tools/ApolloConfig`) para login, jogos, dispositivos e configurações, no mesmo visual do **R3D LAUNCHER**;
+- **Detecção automática** dos jogos da Steam, Epic, GOG e Ubisoft, com capas;
+- **Biblioteca no celular**: os jogos do PC aparecem no R3D LAUNCHER (coleção *PC*), com o uso do PC (FPS, CPU, RAM, GPU, discos, temperatura) na aba Sistema;
+- **Tela virtual** na resolução nativa do celular e fechamento do jogo ao sair da transmissão;
+- **Vários PCs** (notebook + desktop) com o mesmo instalador.
+
+Instalação: [docs/INSTALACAO.md](docs/INSTALACAO.md). Estado dos testes: [docs/R3DPLAY-TESTES.md](docs/R3DPLAY-TESTES.md).
+Marca: [branding/](branding/) (o "R" é o mesmo do ícone do R3D LAUNCHER e do fork do RetroArch; `gerar_logo.py` e `gerar_icones_pc.py` recriam os arquivos).
+
+O projeto mantém a licença GPL-3.0 do original. O texto abaixo é o README do Apollo, mantido como referência.
+
+---
+
+## Sobre o Apollo (projeto original)
 
 Apollo is a self-hosted desktop stream host for [Artemis(Moonlight Noir)](https://github.com/ClassicOldSong/moonlight-android). Offering low latency, native client resolution, cloud gaming server capabilities with support for AMD, Intel, and Nvidia GPUs for hardware encoding. Software encoding is also available. A web UI is provided to allow configuration and client pairing from your favorite web browser. Pair from the local server or any mobile device.
 
