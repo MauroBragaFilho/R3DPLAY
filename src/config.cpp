@@ -598,6 +598,7 @@ namespace config {
     false,  // notify_pre_releases
     false,  // legacy_ordering
     true,  // system_tray
+    true,  // share_library
     {},  // prep commands
     {},  // state commands
     {},  // server commands
@@ -1300,6 +1301,7 @@ namespace config {
     bool_f(vars, "envvar_compatibility_mode", sunshine.envvar_compatibility_mode);
     bool_f(vars, "notify_pre_releases", sunshine.notify_pre_releases);
     bool_f(vars, "legacy_ordering", sunshine.legacy_ordering);
+    bool_f(vars, "share_library", sunshine.share_library);
     bool_f(vars, "forward_rumble", input.forward_rumble);
 
     int port = sunshine.port;

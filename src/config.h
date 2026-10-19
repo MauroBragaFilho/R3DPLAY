@@ -285,6 +285,7 @@ namespace config {
     bool notify_pre_releases;
     bool legacy_ordering;
     bool system_tray;
+    bool share_library;
     std::vector<prep_cmd_t> prep_cmds;
     std::vector<prep_cmd_t> state_cmds;
     std::vector<server_cmd_t> server_cmds;

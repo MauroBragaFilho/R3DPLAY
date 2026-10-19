@@ -879,6 +879,33 @@ namespace nvhttp {
     return true;
   }
 
+  /**
+   * @brief R3D PLAY: lista de jogos para o launcher no celular (somente leitura, sem credenciais).
+   * Desligue com `share_library = disabled` no sunshine.conf.
+   */
+  void r3d_library(std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Request> request) {
+    if (!config::sunshine.share_library) {
+      response->write(SimpleWeb::StatusCode::client_error_forbidden);
+      return;
+    }
+    nlohmann::json root;
+    root["host_uuid"] = http::unique_id;
+    root["host_name"] = config::nvhttp.sunshine_name;
+    root["https_port"] = net::map_port(PORT_HTTPS);
+    auto list = nlohmann::json::array();
+    for (auto &app : proc::proc.get_apps()) {
+      auto appid = util::from_view(app.id);
+      if (appid == proc::terminate_app_id || appid == proc::input_only_app_id) {
+        continue;
+      }
+      list.push_back({{"id", app.id}, {"uuid", app.uuid}, {"name", app.name}});
+    }
+    root["apps"] = list;
+    SimpleWeb::CaseInsensitiveMultimap headers;
+    headers.emplace("Content-Type", "application/json; charset=utf-8");
+    response->write(SimpleWeb::StatusCode::success_ok, root.dump(), headers);
+  }
+
   template<class T>
   void serverinfo(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
     print_req<T>(request);
@@ -1736,6 +1763,7 @@ namespace nvhttp {
     http_server.default_resource["GET"] = not_found<SimpleWeb::HTTP>;
     http_server.resource["^/serverinfo$"]["GET"] = serverinfo<SimpleWeb::HTTP>;
     http_server.resource["^/pair$"]["GET"] = pair<SimpleWeb::HTTP>;
+    http_server.resource["^/r3d/library$"]["GET"] = r3d_library;
 
     http_server.config.reuse_address = true;
     http_server.config.address = net::af_to_any_address_string(address_family);
