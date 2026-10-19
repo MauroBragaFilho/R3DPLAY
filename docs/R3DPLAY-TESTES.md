@@ -17,6 +17,8 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 | Stream pelo launcher | Biblioteca › PC › Desktop › JOGAR transmitiu o PC; o Apollo mostrou "Desktop" como app em execução e `/r3d/stats` marcou transmissão ao vivo a ~60 FPS. |
 | Jogo real do PC | Half-Life 2 pelo launcher (Biblioteca › PC › JOGAR): abriu no PC, transmitiu a ~60 FPS com a GTX 1650 em ~27% de uso, tela e toques funcionando; `/r3d/stats` mostrou "ao vivo". |
 | Resolução nativa + argumentos por motor | O celular pede 2400x1080 (nativo) e o Half-Life 2 abre com `-w 2400 -h 1080 -windowed -noborder`; a imagem enche o celular sem barras, a 60 FPS (hevc_nvenc, decodificação HEVC por hardware no A51). Motores reconhecidos: Source, Unity, Unreal e Godot (jogos Steam); os demais abrem pelo `steam://` normal. |
+| Vários PCs (launcher) | A tela Config › Computador lista os PCs conhecidos e tem "Procurar PCs na rede e sincronizar", "Adicionar PC por este endereço" e "Esquecer todos os PCs"; o PC atual foi migrado e sincronizou os 21 jogos. |
+| Instalador completo | `scripts/gerar-instalador.sh` gerou `Apollo.exe` (NSIS, 78 MB) com serviço, firewall, driver de tela virtual, controle virtual e a janela R3D PLAY autocontida (testei a janela publicada abrindo sozinha, sem .NET instalado à parte). |
 | Fechar jogo ao sair | Sair do stream (Voltar) fez o Apollo encerrar o app e o `--close-dir` fechou o `hl2.exe` em segundos, sem fechar a Steam (testado 2 vezes). |
 | Tela cheia sem esticar | O celular pede 2144x964 (proporção 20:9) e o Apollo cria uma tela virtual dessa resolução (log: "Virtual Display created", "Desktop resolution [2144x964]"); a área de trabalho encheu o celular sem barras. O Moonlight ainda preenche sem esticar se sobrar proporção (Config › Computador › Tela do jogo). Ao sair, o jogo fecha, a tela virtual some e a do notebook volta como principal. |
 | RetroArch embutido (2º jogo) | Super Metroid (SNES) abriu e rodou (cena de introdução), sem o app RetroArch instalado à parte. |
@@ -25,6 +27,8 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 
 ## Ainda não testado
 
+- **Instalar o `R3DPLAY-Setup.exe` em um segundo PC (desktop)**, e ver os jogos dos dois PCs juntos no celular (a junção, o sufixo `· NOME` em jogos repetidos e o botão ⇄ da aba Sistema foram escritos, mas só existe um PC aqui para testar).
+- Os argumentos de resolução em jogos Unity, Unreal e Godot (só o Half-Life 2, que é Source, foi testado).
 - Jogar de verdade um jogo do PC com controle (só vi abertura e vídeo; o Half-Life 2 começou em 30 FPS na tela de intro e foi a 60).
 - O cartão **Transmissão** na tela do celular durante o stream (o FPS ao vivo só foi lido pelo PC; o Moonlight cobre a tela do launcher).
 - RetroArch embutido com os outros cores (PS1, GBA, GB/GBC, NES, Mega Drive, N64, PC Engine, Dreamcast, PSP, DS): não há ROMs deles no cartão (só SNES e PS2). Também controle físico, som e salvar/carregar estado.
