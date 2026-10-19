@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R3D PLAY</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="app" hidden>
+  <aside class="sidebar" aria-label="Navegação">
+    <div class="brand">
+      <div class="brand-mark">R3D</div>
+      <div><span>Game streaming</span><strong>R3D PLAY</strong></div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab-button active" data-tab="home"><i class="ms">home</i><span>Início</span></button>
+      <button class="tab-button" data-tab="games"><i class="ms">sports_esports</i><span>Jogos</span></button>
+      <button class="tab-button" data-tab="devices"><i class="ms">smartphone</i><span>Dispositivos</span></button>
+      <button class="tab-button" data-tab="settings"><i class="ms">tune</i><span>Configurações</span></button>
+      <button class="tab-button" data-tab="logs"><i class="ms">receipt_long</i><span>Registro</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-line"><span id="statusDot" class="dot"></span><span id="statusText">Verificando…</span></div>
+      <button class="link-btn" id="themeBtn"><i class="ms">contrast</i> Trocar tema</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="global-header"><h1 class="page-title" id="pageTitle">Início</h1><div class="header-actions" id="headerActions"></div></header>
+    <div class="content">
+
+      <section class="screen" id="screen-home">
+        <div class="hero card">
+          <div class="hero-icon"><i class="ms">cast_connected</i></div>
+          <div>
+            <h2 id="heroTitle">Seu PC está pronto para transmitir</h2>
+            <p class="muted" id="heroSub">Abra seus jogos no celular, tablet ou outra TV.</p>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Conectar um celular</h3>
+            <ol class="steps">
+              <li><b>1.</b> No celular, instale o <b>Moonlight</b> (ou Artemis) e deixe-o na mesma rede Wi‑Fi do PC.</li>
+              <li><b>2.</b> Adicione o PC usando um destes endereços:</li>
+            </ol>
+            <div class="chips" id="ipChips"></div>
+            <ol class="steps" start="3">
+              <li><b>3.</b> O celular vai mostrar um <b>PIN de 4 números</b>. Digite aqui:</li>
+            </ol>
+            <form class="pair-form" id="pairForm">
+              <input id="pairPin" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off" aria-label="PIN do celular">
+              <input id="pairName" placeholder="Nome do aparelho (opcional)" autocomplete="off" aria-label="Nome do aparelho">
+              <button class="btn primary" type="submit">Parear</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Resumo</h3>
+            <div class="stats">
+              <div class="stat"><strong id="statGames">–</strong><span>jogos</span></div>
+              <div class="stat"><strong id="statDevices">–</strong><span>dispositivos</span></div>
+              <div class="stat"><strong id="statNow">–</strong><span>em transmissão</span></div>
+            </div>
+            <div class="row-actions">
+              <button class="btn" id="homeScan"><i class="ms">search</i> Procurar jogos instalados</button>
+              <button class="btn ghost" id="homeStop" hidden><i class="ms">stop_circle</i> Encerrar transmissão</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-games" hidden>
+        <div class="toolbar">
+          <div class="search"><i class="ms">search</i><input id="gameSearch" placeholder="Buscar jogo…" aria-label="Buscar jogo"></div>
+          <button class="btn" id="gamesScan"><i class="ms">refresh</i> Detectar jogos</button>
+        </div>
+        <div class="games" id="gamesGrid"></div>
+        <p class="empty" id="gamesEmpty" hidden>Nenhum jogo ainda. Clique em <b>Detectar jogos</b> para procurar na Steam, Epic, GOG e Ubisoft.</p>
+      </section>
+
+      <section class="screen" id="screen-devices" hidden>
+        <div class="card list" id="deviceList"></div>
+        <p class="empty" id="devicesEmpty" hidden>Nenhum celular pareado ainda. Vá em <b>Início</b> para conectar o primeiro.</p>
+        <div class="row-actions"><button class="btn danger" id="unpairAll"><i class="ms">link_off</i> Desparear todos</button></div>
+      </section>
+
+      <section class="screen" id="screen-settings" hidden>
+        <div class="card form">
+          <h3>Geral</h3>
+          <label>Nome do PC <small>Como ele aparece no celular</small><input id="cfg-sunshine_name"></label>
+          <label>Quem pode abrir este painel
+            <select id="cfg-origin_web_ui_allowed"><option value="pc">Somente este PC (mais seguro)</option><option value="lan">Rede local</option><option value="wan">Qualquer lugar</option></select>
+          </label>
+          <h3>Transmissão</h3>
+          <label>Controle virtual <small>Tipo de controle que os jogos enxergam</small>
+            <select id="cfg-gamepad"><option value="auto">Automático</option><option value="x360">Xbox 360</option><option value="ds4">DualShock 4</option></select>
+          </label>
+          <label>Limite de qualidade (Mbps) <small>0 = sem limite. Use menos se o Wi‑Fi estiver ruim</small><input id="cfg-max_bitrate" type="number" min="0" step="1"></label>
+          <label class="check"><input id="cfg-upnp" type="checkbox"> Permitir jogar fora de casa <small>Abre as portas automaticamente (UPnP)</small></label>
+          <div class="row-actions">
+            <button class="btn primary" id="saveCfg">Salvar e reiniciar</button>
+            <button class="btn" id="advBtn"><i class="ms">settings</i> Opções avançadas</button>
+            <button class="btn ghost" id="logoutBtn"><i class="ms">logout</i> Sair da conta</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-logs" hidden>
+        <div class="toolbar"><button class="btn" id="logsRefresh"><i class="ms">refresh</i> Atualizar</button><button class="btn" id="logsCopy"><i class="ms">content_copy</i> Copiar</button></div>
+        <pre class="logs" id="logsBox"></pre>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<div id="auth" class="auth" hidden>
+  <form class="card auth-card" id="authForm">
+    <div class="brand-mark big">R3D</div>
+    <h2 id="authTitle">Entrar</h2>
+    <p class="muted" id="authSub">Use o usuário e a senha do seu Apollo. Só precisa digitar uma vez.</p>
+    <label>Usuário<input id="authUser" autocomplete="username" required></label>
+    <label>Senha<input id="authPass" type="password" autocomplete="current-password" required></label>
+    <label id="authPass2Wrap" hidden>Repita a senha<input id="authPass2" type="password" autocomplete="new-password"></label>
+    <p class="error" id="authErr" hidden></p>
+    <button class="btn primary wide" type="submit" id="authBtn">Entrar</button>
+  </form>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<dialog id="dlg"><form method="dialog"><p id="dlgMsg"></p><div class="row-actions"><button class="btn" value="no">Cancelar</button><button class="btn danger" value="yes" id="dlgYes">Confirmar</button></div></form></dialog>
+<script src="app.js"></script>
+</body>
+</html>
