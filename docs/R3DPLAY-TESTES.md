@@ -63,5 +63,7 @@ Versões testadas: launcher `app-release.apk` (módulos `:moonlight` e `:retroar
 | Gravação real | A configuração atual foi regravada sem mudanças e o `sunshine.conf` ficou idêntico byte a byte; gravar e remover uma chave simples e uma lista (`global_prep_cmd`) também voltou ao arquivo original. |
 | Reinício real | `restartServer()` reiniciou o serviço em 7 s, a sessão foi refeita sozinha e a lista de jogos voltou. |
 | Ponte nativa | `whoami` (só o usuário), `info.dataDir`, log em UTF-8 (sem texto quebrado em "™"), `stats`, fechar a janela sem alterações pendentes. |
+| Instalador novo | O usuário instalou o `R3DPLAY-Setup.exe`: `ApolloConfig.exe` e `sunshine.exe` com nome "R3D PLAY", serviço "R3D PLAY Service" rodando (processo novo logo após a instalação), atalho "R3D PLAY" no menu Iniciar, entrada "R3D PLAY" no Painel de Controle, pasta `ui` nova sem o `app.js` antigo. |
+| Configuração inicial (instalação nova) | Na janela instalada, removi `dd_configuration_option` do `sunshine.conf` e recarreguei o painel: ele recriou `ensure_primary`, reiniciou o serviço sozinho e o arquivo voltou idêntico byte a byte. |
 
-Ainda não testado: pareamento real de um celular novo pela tela Dispositivos (PIN e OTP), "Dar acesso total", troca de senha real, a pergunta ao fechar a janela com alterações não salvas (caixa do Windows), Linux/macOS, e a instalação do novo `R3DPLAY-Setup.exe` (UAC: o usuário dá dois cliques).
+Ainda não testado: pareamento real de um celular novo pela tela Dispositivos (PIN e OTP), "Dar acesso total", troca de senha real, a pergunta ao fechar a janela com alterações não salvas (caixa do Windows), o ícone da bandeja (aparência), Linux/macOS e a instalação em um segundo PC.
