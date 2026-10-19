@@ -22,3 +22,5 @@ try {
   "OK: instalado"
 } catch { "ERRO: $_" }
 Stop-Transcript | Out-Null
+Write-Host (Get-Content $log -Tail 4 | Out-String)
+Start-Sleep 8

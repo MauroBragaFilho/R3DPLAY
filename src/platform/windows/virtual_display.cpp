@@ -12,11 +12,50 @@
 #include <physicalmonitorenumerationapi.h>
 #include <dxgi1_6.h>
 
+#include <userenv.h>
+#include <WtsApi32.h>
+
 #include "virtual_display.h"
 
 using namespace SUDOVDA;
 
 namespace VDISPLAY {
+
+// R3D PLAY: o Apollo roda como serviço (sessão 0) e a topologia da área de trabalho do usuário só muda se o pedido sair de
+// dentro da sessão dele. Inicia um programa (escondido) com o token do usuário logado no console e espera ele terminar.
+static bool runInUserSession(const wchar_t *commandLine, DWORD timeoutMs) {
+	HANDLE userToken = nullptr;
+	if (!WTSQueryUserToken(WTSGetActiveConsoleSessionId(), &userToken)) {
+		return false;
+	}
+	HANDLE primary = nullptr;
+	bool ok = DuplicateTokenEx(userToken, MAXIMUM_ALLOWED, nullptr, SecurityIdentification, TokenPrimary, &primary);
+	CloseHandle(userToken);
+	if (!ok) {
+		return false;
+	}
+	LPVOID env = nullptr;
+	CreateEnvironmentBlock(&env, primary, FALSE);
+	std::wstring cmd = commandLine;
+	STARTUPINFOW si {};
+	si.cb = sizeof(si);
+	si.lpDesktop = const_cast<LPWSTR>(L"winsta0\\default");
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+	PROCESS_INFORMATION pi {};
+	ok = CreateProcessAsUserW(primary, nullptr, cmd.data(), nullptr, nullptr, FALSE, CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, env, nullptr, &si, &pi);
+	if (ok) {
+		WaitForSingleObject(pi.hProcess, timeoutMs);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+	if (env) {
+		DestroyEnvironmentBlock(env);
+	}
+	CloseHandle(primary);
+	return ok;
+}
+
 // {dff7fd29-5b75-41d1-9731-b32a17a17104}
 // static const GUID DEFAULT_DISPLAY_GUID = { 0xdff7fd29, 0x5b75, 0x41d1, { 0x97, 0x31, 0xb3, 0x2a, 0x17, 0xa1, 0x71, 0x04 } };
 
@@ -671,15 +710,29 @@ std::wstring createVirtualDisplay(
 		return std::wstring();
 	}
 
-	uint32_t retryInterval = 20;
+	// R3D PLAY: em alguns PCs (ex.: Windows 11 em notebook com GPU híbrida) o Windows não ativa sozinho o monitor virtual
+	// recém-chegado, então o caminho de vídeo nunca fica ativo e o nome da tela não aparece. Se passar de ~0,3 s sem o nome,
+	// aplica a topologia "estendida" (o mesmo que Win+P > Estender) uma única vez e continua esperando (até ~6 s).
 	wchar_t deviceName[CCHDEVICENAME]{};
-	while (!GetAddedDisplayName(output, deviceName)) {
-		Sleep(retryInterval);
-		if (retryInterval > 320) {
+	bool extendApplied = false;
+	for (uint32_t waited = 0; !GetAddedDisplayName(output, deviceName); waited += 50) {
+		if (waited >= 6000) {
 			printf("[SUDOVDA] Cannot get name for newly added virtual display!\n");
 			return std::wstring();
 		}
-		retryInterval *= 2;
+		if (!extendApplied && waited >= 300) {
+			extendApplied = true;
+			// O Apollo roda como serviço (sessão 0): a topologia da área de trabalho do usuário só muda se o pedido
+			// sair de dentro da sessão do usuário. DisplaySwitch.exe /extend é o mesmo que Win+P > Estender.
+			if (runInUserSession(L"C:\\Windows\\System32\\DisplaySwitch.exe /extend", 5000)) {
+				printf("[SUDOVDA] Virtual display not active yet, applied extend topology through the user session\n");
+			} else {
+				// Sem sessão de usuário (ex.: rodando como programa comum): tenta direto
+				LONG rc = SetDisplayConfig(0, nullptr, 0, nullptr, SDC_APPLY | SDC_TOPOLOGY_EXTEND | SDC_ALLOW_CHANGES);
+				printf("[SUDOVDA] Virtual display not active yet, applied extend topology directly (rc=%ld)\n", rc);
+			}
+		}
+		Sleep(50);
 	}
 
 	wprintf(L"[SUDOVDA] Virtual display added successfully: %ls\n", deviceName);

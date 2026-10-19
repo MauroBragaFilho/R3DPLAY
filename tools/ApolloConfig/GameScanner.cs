@@ -23,7 +23,7 @@ internal sealed record Game(string Source, string Id, string Name, string? Cmd, 
     // Ao fim da transmissão o Apollo encerra o app; como o jogo abre por fora (steam://, launcher...), o comando "undo"
     // fecha os processos que rodam dentro da pasta de instalação do jogo (sem tocar no launcher/Steam).
     o["terminate-on-pause"] = true;
-    o["virtual-display"] = false;  // a tela virtual (SudoVDA) não é criada neste PC; manter desligada evita esperar à toa
+    o["virtual-display"] = true;  // tela virtual com a resolução do celular (sem mexer na tela do PC e sem esticar)
     if (InstallDir != null) {
       var exe = Path.Combine(AppContext.BaseDirectory, "ApolloConfig.exe");
       o["prep-cmd"] = new JsonArray(new JsonObject { ["do"] = "", ["undo"] = $"\"{exe}\" --close-dir \"{InstallDir}\"", ["elevated"] = false });

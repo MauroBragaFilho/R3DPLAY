@@ -95,6 +95,7 @@ list(PREPEND PLATFORM_LIBRARIES
         shlwapi
         synchronization.lib
         userenv
+        wtsapi32
         ws2_32
         wsock32
 )
