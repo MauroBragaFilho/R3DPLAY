@@ -330,6 +330,21 @@ $('#authForm').addEventListener('submit', async (e) => {
   boot();
 });
 
+/* Instalação nova: deixa a tela virtual como principal durante o jogo (o jogo abre nela, na resolução do celular). */
+async function ensureDefaults() {
+  const r = await api('GET', '/api/config');
+  if (!r.json) return false;
+  const cfg = { ...r.json };
+  ['status', 'platform', 'version', 'vdisplayStatus'].forEach((k) => delete cfg[k]);
+  if (cfg.dd_configuration_option) return false;  // já configurado: não mexe
+  cfg.dd_configuration_option = 'ensure_primary';
+  const save = await api('POST', '/api/config', cfg);
+  if (!save.json?.status) return false;
+  await api('POST', '/api/restart', {});
+  toast('Configuração inicial aplicada. Reiniciando o Apollo…', 'ok');
+  return true;
+}
+
 /* ---------- Inicialização ---------- */
 async function boot() {
   const r = await api('GET', '/api/apps');
@@ -343,6 +358,7 @@ async function boot() {
   $('#auth').hidden = true;
   $('#app').hidden = false;
   setOnline(true);
+  if (await ensureDefaults()) { setTimeout(boot, 8000); return; }
   showTab(TITLES[location.hash.slice(1)] ? location.hash.slice(1) : 'home');
   scanGames(false); // adiciona jogos novos sem barulho
 }

@@ -1,6 +1,14 @@
 # windows specific packaging
 install(TARGETS sunshine RUNTIME DESTINATION "." COMPONENT application)
 
+# R3D PLAY: janela nativa de configuração (autocontida, gerada por tools/ApolloConfig/publicar.ps1)
+if(EXISTS "${CMAKE_SOURCE_DIR}/tools/ApolloConfig/publish/ApolloConfig.exe")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/tools/ApolloConfig/publish/"
+            DESTINATION "." COMPONENT application
+            PATTERN "*.pdb" EXCLUDE
+            PATTERN "*.xml" EXCLUDE)
+endif()
+
 # Hardening: include zlib1.dll (loaded via LoadLibrary() in openssl's libcrypto.a)
 install(FILES "${ZLIB}" DESTINATION "." COMPONENT application)
 
