@@ -151,10 +151,11 @@ internal sealed class MainForm : Form {
           File.AppendAllText(Path.Combine(ApolloClient.DataDir, "ui.log"), $"{DateTime.Now:HH:mm:ss} {m["text"]}{Environment.NewLine}");
           result = new JsonObject { ["ok"] = true };
           break;
-        case "mapCovers": {  // pasta de capas do Apollo, lida pela interface em https://covers.r3dplay.local
-          var dir = m["dir"]!.GetValue<string>();
-          if (Directory.Exists(dir)) web.CoreWebView2.SetVirtualHostNameToFolderMapping("covers.r3dplay.local", dir, CoreWebView2HostResourceAccessKind.Allow);
-          result = new JsonObject { ["ok"] = Directory.Exists(dir) };
+        case "readCover": {  // lê um PNG da pasta de capas do Apollo (só arquivos .png dentro de uma pasta "covers")
+          var path = Path.GetFullPath(m["path"]!.GetValue<string>());
+          var ok = path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(Path.GetFileName(Path.GetDirectoryName(path)), "covers", StringComparison.OrdinalIgnoreCase) && File.Exists(path);
+          result = new JsonObject { ["data"] = ok ? Convert.ToBase64String(await File.ReadAllBytesAsync(path)) : null };
           break;
         }
         case "cover": {

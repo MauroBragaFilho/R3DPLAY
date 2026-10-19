@@ -48,14 +48,6 @@ function showTab(tab) {
   ({ home: refreshHome, games: refreshGames, devices: refreshDevices, settings: loadSettings, logs: loadLogs })[tab]();
 }
 $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('.tab-button'); if (b) showTab(b.dataset.tab); });
-const savedTheme = (() => { try { return localStorage.getItem('theme'); } catch { return null; } })();
-if (savedTheme) document.documentElement.dataset.theme = savedTheme;
-$('#themeBtn').onclick = () => {
-  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.dataset.theme = t;
-  try { localStorage.setItem('theme', t); } catch { /* sem armazenamento */ }
-};
-
 /* ---------- Estado ---------- */
 let apps = [];
 let currentApp = '';
@@ -125,14 +117,15 @@ async function stopStream() {
 
 /* ---------- Jogos ---------- */
 const SOURCES = { steam: 'Steam', epic: 'Epic', gog: 'GOG', ubisoft: 'Ubisoft' };
-let coversMapped = '';
-/** Capa gravada no Apollo (pasta de capas do PC), servida em um host virtual da janela. */
+const coverCache = new Map();  // caminho -> data URL ('' = ainda não leu ou sem arquivo)
+/** Capa gravada no Apollo (pasta de capas do PC): o app nativo lê o PNG e a interface mostra como data URL. */
 function localCover(app) {
   const p = (app['image-path'] || '').split(String.fromCharCode(92)).join('/');
   if (!p.includes('/')) return '';
-  const dir = p.slice(0, p.lastIndexOf('/'));
-  if (coversMapped !== dir) { coversMapped = dir; native('mapCovers', { dir }).then(() => { if (!$('#screen-games').hidden) renderGames(); }); return ''; }
-  return `https://covers.r3dplay.local/${encodeURIComponent(p.slice(p.lastIndexOf('/') + 1))}`;
+  if (coverCache.has(p)) return coverCache.get(p);
+  coverCache.set(p, '');
+  native('readCover', { path: p }).then((r) => { if (r.data) { coverCache.set(p, 'data:image/png;base64,' + r.data); if (!$('#screen-games').hidden) renderGames(); } });
+  return '';
 }
 function coverUrl(app) {
   const g = scanned.get(app.uuid);
@@ -144,6 +137,12 @@ async function refreshGames() {
   scanned = new Map((s.games || []).map((g) => [g.uuid, g]));
   renderGames();
 }
+function placeholder(a) {
+  const n = a.name.toLowerCase();
+  if (n === 'desktop') return '<i class="ms big">desktop_windows</i>';
+  if (n.includes('steam big picture')) return '<i class="ms big">sports_esports</i>';
+  return `<span class="letter">${esc(a.name.trim()[0] || '?').toUpperCase()}</span>`;
+}
 function renderGames() {
   const q = $('#gameSearch').value.trim().toLowerCase();
   const list = apps.filter((a) => a.name.toLowerCase().includes(q));
@@ -153,7 +152,7 @@ function renderGames() {
     const cover = coverUrl(a) || localCover(a);
     const live = a.uuid === currentApp;
     return `<article class="game" data-uuid="${esc(a.uuid)}">
-      <div class="cover"><span class="letter">${esc(a.name.trim()[0] || '?').toUpperCase()}</span>${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+      <div class="cover">${placeholder(a)}${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
         ${live ? '<span class="badge-live">AO VIVO</span>' : ''}
         <div class="game-actions"><button class="icon-btn" data-act="del" title="Remover da lista" aria-label="Remover ${esc(a.name)}"><i class="ms">delete</i></button></div>
         <div class="play-overlay"><button class="btn primary" data-act="${live ? 'stop' : 'play'}"><i class="ms">${live ? 'stop' : 'play_arrow'}</i>${live ? 'Encerrar' : 'Iniciar'}</button></div>

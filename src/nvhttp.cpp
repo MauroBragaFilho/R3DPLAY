@@ -29,6 +29,7 @@
 #include "logging.h"
 #include "network.h"
 #include "nvhttp.h"
+#include "r3d_stats.h"
 #include "platform/common.h"
 #include "process.h"
 #include "rtsp.h"
@@ -933,6 +934,18 @@ namespace nvhttp {
     response->write(SimpleWeb::StatusCode::success_ok, in, headers);
   }
 
+  /** @brief R3D PLAY: uso do PC para a aba Sistema do launcher. Mesma regra de `share_library`. */
+  void r3d_stats_handler(std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Request> request) {
+    if (!config::sunshine.share_library) {
+      response->write(SimpleWeb::StatusCode::client_error_forbidden);
+      return;
+    }
+    SimpleWeb::CaseInsensitiveMultimap headers;
+    headers.emplace("Content-Type", "application/json; charset=utf-8");
+    headers.emplace("Cache-Control", "no-store");
+    response->write(SimpleWeb::StatusCode::success_ok, r3d_stats::snapshot().dump(), headers);
+  }
+
   template<class T>
   void serverinfo(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
     print_req<T>(request);
@@ -1792,6 +1805,7 @@ namespace nvhttp {
     http_server.resource["^/pair$"]["GET"] = pair<SimpleWeb::HTTP>;
     http_server.resource["^/r3d/library$"]["GET"] = r3d_library;
     http_server.resource["^/r3d/cover$"]["GET"] = r3d_cover;
+    http_server.resource["^/r3d/stats$"]["GET"] = r3d_stats_handler;
 
     http_server.config.reuse_address = true;
     http_server.config.address = net::af_to_any_address_string(address_family);

@@ -11,6 +11,8 @@
 #include "video_colorspace.h"
 
 extern "C" {
+#include <atomic>
+#include <cstdint>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 }
@@ -18,6 +20,9 @@ extern "C" {
 struct AVPacket;
 
 namespace video {
+  /** Quadros codificados desde o início (R3D PLAY: usado para medir o FPS da transmissão). */
+  extern std::atomic<uint64_t> frames_encoded;
+
 
   /* Encoding configuration requested by remote client */
   struct config_t {
