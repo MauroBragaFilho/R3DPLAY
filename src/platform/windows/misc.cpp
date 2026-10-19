@@ -1069,7 +1069,19 @@ namespace platf {
     auto working_dir = boost::filesystem::path();
     std::error_code ec;
 
-    auto child = run_command(false, false, url, working_dir, _env, nullptr, ec, nullptr);
+    // Prefer the native config window (ApolloConfig.exe next to our executable) for local UI URLs
+    std::string command = url;
+    if (url.rfind("https://localhost", 0) == 0) {
+      WCHAR exe_path[MAX_PATH];
+      if (GetModuleFileNameW(nullptr, exe_path, ARRAYSIZE(exe_path)) != 0) {
+        auto ui_exe = std::filesystem::path(exe_path).parent_path() / L"ApolloConfig.exe";
+        if (std::filesystem::exists(ui_exe)) {
+          command = "\"" + ui_exe.string() + "\" \"" + url + "\"";
+        }
+      }
+    }
+
+    auto child = run_command(false, false, command, working_dir, _env, nullptr, ec, nullptr);
     if (ec) {
       BOOST_LOG(warning) << "Couldn't open url ["sv << url << "]: System: "sv << ec.message();
     } else {
