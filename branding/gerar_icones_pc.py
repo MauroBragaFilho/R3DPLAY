@@ -27,8 +27,8 @@ def com_selo(img, cor, escurecer=False):
     if escurecer:
         out = Image.blend(out, Image.new("RGBA", out.size, (20, 20, 24, 255)), 0.45)
     d = ImageDraw.Draw(out)
-    r = n * 0.20
-    cx, cy = n * 0.76, n * 0.76
+    r = n * 0.165     # selo menor e no canto: a perna direita do R continua legível nos tamanhos da bandeja
+    cx, cy = n * 0.795, n * 0.795
     d.ellipse([cx - r - n * 0.03, cy - r - n * 0.03, cx + r + n * 0.03, cy + r + n * 0.03], fill=(5, 5, 6, 255))
     d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=cor + (255,))
     return out
@@ -37,7 +37,7 @@ def com_selo(img, cor, escurecer=False):
 def svg_estado(hex_cor, escurecer):
     base = logo.svg(True).replace("</svg>\n", "")
     extra = '<rect width="108" height="108" fill="#14141a" opacity="0.45"/>' if escurecer else ""
-    selo = f'<circle cx="82" cy="82" r="19" fill="#050506"/><circle cx="82" cy="82" r="15" fill="{hex_cor}"/>'
+    selo = f'<circle cx="86" cy="86" r="20.5" fill="#050506"/><circle cx="86" cy="86" r="17.8" fill="{hex_cor}"/>'
     return base + extra + selo + "</svg>\n"
 
 
