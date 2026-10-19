@@ -115,6 +115,15 @@ async function stopStream() {
 
 /* ---------- Jogos ---------- */
 const SOURCES = { steam: 'Steam', epic: 'Epic', gog: 'GOG', ubisoft: 'Ubisoft' };
+let coversMapped = '';
+/** Capa gravada no Apollo (pasta de capas do PC), servida em um host virtual da janela. */
+function localCover(app) {
+  const p = (app['image-path'] || '').split(String.fromCharCode(92)).join('/');
+  if (!p.includes('/')) return '';
+  const dir = p.slice(0, p.lastIndexOf('/'));
+  if (coversMapped !== dir) { coversMapped = dir; native('mapCovers', { dir }).then(() => { if (!$('#screen-games').hidden) renderGames(); }); return ''; }
+  return `https://covers.r3dplay.local/${encodeURIComponent(p.slice(p.lastIndexOf('/') + 1))}`;
+}
 function coverUrl(app) {
   const g = scanned.get(app.uuid);
   return g?.source === 'steam' ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.id}/library_600x900.jpg` : '';
@@ -131,7 +140,7 @@ function renderGames() {
   $('#gamesEmpty').hidden = list.length > 0;
   $('#gamesGrid').innerHTML = list.map((a) => {
     const src = SOURCES[scanned.get(a.uuid)?.source] || 'Aplicativo';
-    const cover = coverUrl(a);
+    const cover = coverUrl(a) || localCover(a);
     const live = a.uuid === currentApp;
     return `<article class="game" data-uuid="${esc(a.uuid)}">
       <div class="cover"><span class="letter">${esc(a.name.trim()[0] || '?').toUpperCase()}</span>${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
@@ -175,7 +184,36 @@ async function scanGames(manual) {
   await loadApps();
   btn?.removeAttribute('disabled');
   if (!$('#screen-games').hidden) renderGames();
+  syncCovers();
   if (manual || added) toast(added ? `${added} jogo(s) novo(s) adicionado(s)` : `${found.length} jogos encontrados, nenhum novo`, 'ok');
+}
+/* Capas: baixa a capa de cada jogo sem imagem e grava no Apollo (aparece aqui e no celular). */
+let coversBusy = false;
+const coversFixed = (() => { try { return localStorage.getItem('coversFixed') === '1'; } catch { return false; } })();
+async function syncCovers() {
+  if (coversBusy) return;
+  coversBusy = true;
+  try {
+    let tried = {};
+    try { tried = JSON.parse(localStorage.getItem('coversTried') || '{}'); } catch { /* sem cache */ }
+    const week = 7 * 24 * 3600 * 1000;
+    let added = 0;
+    for (const app of apps) {
+      const g = scanned.get(app.uuid);
+      const redo = !coversFixed && (app['image-path'] || '').includes('/covers/');  // v1 gravava PNG corrompido (modo texto)
+      if (!g || (app['image-path'] && !redo) || (!redo && tried[app.uuid] && Date.now() - tried[app.uuid] < week)) continue;
+      const c = await native('cover', { source: g.source, gameId: g.id, name: g.name });
+      tried[app.uuid] = Date.now();
+      if (!c.data) continue;
+      const up = await api('POST', '/api/covers/upload', { key: app.uuid, data: c.data });
+      if (!up.json?.path) { native('log', { text: 'upload falhou ' + up.status + ' ' + up.text }); continue; }
+      const r = await api('POST', '/api/apps', { ...app, 'image-path': up.json.path });
+      if (!r.json?.status) native('log', { text: 'apps falhou ' + r.status + ' ' + r.text });
+      if (r.json?.status) added++;
+    }
+    try { localStorage.setItem('coversTried', JSON.stringify(tried)); localStorage.setItem('coversFixed', '1'); } catch { /* sem cache */ }
+    if (added) { await loadApps(); if (!$('#screen-games').hidden) renderGames(); }
+  } catch (e) { native('log', { text: 'syncCovers: ' + e }); } finally { coversBusy = false; }
 }
 $('#gamesScan').onclick = () => scanGames(true);
 

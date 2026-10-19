@@ -898,12 +898,39 @@ namespace nvhttp {
       if (appid == proc::terminate_app_id || appid == proc::input_only_app_id) {
         continue;
       }
-      list.push_back({{"id", app.id}, {"uuid", app.uuid}, {"name", app.name}});
+      nlohmann::json item = {{"id", app.id}, {"uuid", app.uuid}, {"name", app.name}};
+      if (!app.image_path.empty()) {
+        item["cover"] = "/r3d/cover?appid=" + app.id;
+      }
+      list.push_back(std::move(item));
     }
     root["apps"] = list;
     SimpleWeb::CaseInsensitiveMultimap headers;
     headers.emplace("Content-Type", "application/json; charset=utf-8");
     response->write(SimpleWeb::StatusCode::success_ok, root.dump(), headers);
+  }
+
+  /** @brief R3D PLAY: capa de um jogo (PNG) para o launcher. Mesma regra de `share_library`. */
+  void r3d_cover(std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Request> request) {
+    if (!config::sunshine.share_library) {
+      response->write(SimpleWeb::StatusCode::client_error_forbidden);
+      return;
+    }
+    auto args = request->parse_query_string();
+    auto it = args.find("appid");
+    if (it == args.end()) {
+      response->write(SimpleWeb::StatusCode::client_error_bad_request);
+      return;
+    }
+    auto path = proc::proc.get_app_image(util::from_view(it->second));
+    std::ifstream in(path, std::ios::binary);
+    if (!in) {
+      response->write(SimpleWeb::StatusCode::client_error_not_found);
+      return;
+    }
+    SimpleWeb::CaseInsensitiveMultimap headers;
+    headers.emplace("Content-Type", "image/png");
+    response->write(SimpleWeb::StatusCode::success_ok, in, headers);
   }
 
   template<class T>
@@ -1764,6 +1791,7 @@ namespace nvhttp {
     http_server.resource["^/serverinfo$"]["GET"] = serverinfo<SimpleWeb::HTTP>;
     http_server.resource["^/pair$"]["GET"] = pair<SimpleWeb::HTTP>;
     http_server.resource["^/r3d/library$"]["GET"] = r3d_library;
+    http_server.resource["^/r3d/cover$"]["GET"] = r3d_cover;
 
     http_server.config.reuse_address = true;
     http_server.config.address = net::af_to_any_address_string(address_family);

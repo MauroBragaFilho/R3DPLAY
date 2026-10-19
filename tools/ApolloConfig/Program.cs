@@ -147,6 +147,21 @@ internal sealed class MainForm : Form {
           result = new JsonObject { ["games"] = arr };
           break;
         }
+        case "log":  // diagnóstico da interface (arquivo ui.log na pasta de dados)
+          File.AppendAllText(Path.Combine(ApolloClient.DataDir, "ui.log"), $"{DateTime.Now:HH:mm:ss} {m["text"]}{Environment.NewLine}");
+          result = new JsonObject { ["ok"] = true };
+          break;
+        case "mapCovers": {  // pasta de capas do Apollo, lida pela interface em https://covers.r3dplay.local
+          var dir = m["dir"]!.GetValue<string>();
+          if (Directory.Exists(dir)) web.CoreWebView2.SetVirtualHostNameToFolderMapping("covers.r3dplay.local", dir, CoreWebView2HostResourceAccessKind.Allow);
+          result = new JsonObject { ["ok"] = Directory.Exists(dir) };
+          break;
+        }
+        case "cover": {
+          var png = await CoverFetcher.GetPngAsync(m["source"]!.GetValue<string>(), m["gameId"]!.GetValue<string>(), m["name"]!.GetValue<string>());
+          result = new JsonObject { ["data"] = png == null ? null : Convert.ToBase64String(png) };
+          break;
+        }
         case "info":
           result = new JsonObject { ["host"] = Environment.MachineName, ["ips"] = LocalAddresses(), ["url"] = startUrl };
           break;
@@ -207,6 +222,12 @@ internal static class Program {
     }
     if (args.Length == 3 && args[0] == "--save-login") {  // guarda o login (criptografado, só para este usuário do Windows)
       new ApolloClient("https://localhost:47990").SaveCredentials(args[1], args[2]);
+      return;
+    }
+    if (args.Length == 4 && args[0] == "--cover") {  // diagnóstico: baixa uma capa para um arquivo PNG
+      var png = CoverFetcher.GetPngAsync(args[1], args[2], args[2]).GetAwaiter().GetResult();
+      File.WriteAllText(args[3] + ".txt", png == null ? "sem capa" : png.Length + " bytes");
+      if (png != null) File.WriteAllBytes(args[3], png);
       return;
     }
     using var mutex = new Mutex(true, "ApolloConfigWindow", out var first);
