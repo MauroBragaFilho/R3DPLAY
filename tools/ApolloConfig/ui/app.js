@@ -102,9 +102,19 @@ $('#pairForm').addEventListener('submit', async (e) => {
   const pin = $('#pairPin').value.trim();
   if (!/^\d{4}$/.test(pin)) return toast('Digite os 4 números mostrados no celular', 'err');
   const r = await api('POST', '/api/pin', { pin, name: $('#pairName').value.trim() || 'Meu celular' });
-  if (r.json?.status) { toast('Celular pareado!', 'ok'); $('#pairPin').value = ''; $('#pairName').value = ''; refreshHome(); }
+  if (r.json?.status) { await grantFull(); toast('Celular pareado!', 'ok'); $('#pairPin').value = ''; $('#pairName').value = ''; refreshHome(); }
   else toast('PIN não aceito. Confira se o celular ainda mostra o PIN.', 'err');
 });
+/* Aparelhos novos nascem só com "ver/listar"; quem pareia pelo PIN é você, então libera tudo (iniciar jogos, controle...). */
+const PERM_ALL = 119480064;
+const PERM_DEFAULT = 50331648; // ver + listar
+async function grantFull() {
+  const c = await api('GET', '/api/clients/list');
+  for (const d of c.json?.named_certs || []) {
+    if (d.perm !== PERM_DEFAULT) continue;  // só mexe em aparelhos recém-pareados
+    await api('POST', '/api/clients/update', { ...d, perm: PERM_ALL });
+  }
+}
 $('#homeScan').onclick = () => { showTab('games'); scanGames(true); };
 $('#homeStop').onclick = stopStream;
 async function stopStream() {
