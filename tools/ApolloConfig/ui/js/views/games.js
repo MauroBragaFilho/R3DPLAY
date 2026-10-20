@@ -6,7 +6,7 @@ import * as M from '../lib/appmodel.js';
 import { detectGames, sourceForApp, isDetectedGame, peekCover, loadCover, launchApp, closeApp, removeApp, reorderApps, rememberDismissed } from '../lib/library.js';
 import { openAppEditor } from '../lib/appeditor.js';
 import { hasFiles } from '../lib/programs.js';
-import { probeFolderDrop, dropHint } from '../lib/addwizard.js';
+import { probeFolderDrop, dropHint, loadInstalled } from '../lib/addwizard.js';
 
 const FILTERS = [['all', 'Todos'], ...M.SOURCE_KEYS.map((k) => [k, M.SOURCE_LABELS[k]])];
 
@@ -108,6 +108,14 @@ function mount(r) {
   els.grid.addEventListener('dragend', endDrag);
 }
 
+let warmed = false;
+/** Lê a lista de programas instalados uma vez por sessão, em segundo plano (a leitura roda fora da interface no app nativo). */
+function warmInstalled() {
+  if (warmed) return;
+  warmed = true;
+  setTimeout(() => { loadInstalled().catch(() => { /* a janela de adicionar tenta de novo e mostra o erro lá */ }); }, 1500);
+}
+
 async function show(params = {}) {
   visible = true;
   if (loadState === 'loading' && serverList().length) loadState = 'ready';   // o main.js já carregou a lista: mostra já e atualiza por baixo
@@ -119,6 +127,7 @@ async function show(params = {}) {
   ];
   hookDrop();
   probeFolderDrop();   // (sem esperar) o aviso "Solte aqui" só cita a pasta do jogo se o app nativo sabe lê-la
+  warmInstalled();     // (sem esperar) a 1ª leitura dos programas instalados pode levar alguns segundos: deixa pronta antes do clique
   lastSig = '';
   render();
   await refresh();
