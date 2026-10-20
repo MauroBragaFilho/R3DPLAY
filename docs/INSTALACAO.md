@@ -7,6 +7,7 @@ O mesmo instalador serve para qualquer PC com Windows 10/11 e uma GPU com codifi
 1. Compilar: `scripts/setup-msys2.sh` (uma vez) e `scripts/build-windows.sh` (MSYS2 UCRT64).
 2. Publicar a janela autocontida (não exige .NET no PC de destino): `tools/ApolloConfig/publicar.ps1`.
 3. Gerar o instalador: `scripts/gerar-instalador.sh` → `build/cpack_artifacts/R3DPLAY-Setup.exe` (~78 MB).
+   (Para publicar uma versão no GitHub sem compilar na sua máquina: crie uma tag, `git tag v1.1.0 && git push origin v1.1.0`; veja `docs/RELEASE.md`.)
 
 ## 2. Instalar no PC de jogos
 

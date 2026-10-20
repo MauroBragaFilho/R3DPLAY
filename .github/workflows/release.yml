@@ -1,0 +1,155 @@
+name: Release do instalador (Windows)
+
+# Compila o R3D PLAY no Windows e gera o R3DPLAY-Setup.exe.
+#
+#   git tag v1.1.0 && git push origin v1.1.0
+#       -> compila e cria (ou atualiza) a release da tag com o instalador e o SHA-256.
+#   Actions > "Release do instalador (Windows)" > Run workflow
+#       -> só compila e guarda o instalador como artefato (teste: nenhuma release é criada).
+#
+# Os passos repetem o que se faz na máquina de desenvolvimento (scripts/setup-msys2.sh, tools/ApolloConfig/publicar.ps1,
+# scripts/build-windows.sh e scripts/gerar-instalador.sh). Detalhes em docs/RELEASE.md.
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'V*'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # criar a release e anexar o instalador
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Instalador do Windows
+    runs-on: windows-latest
+    timeout-minutes: 240
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Baixar o código (com os submódulos)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Definir a versão
+        id: ver
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            v="${GITHUB_REF_NAME#[vV]}"
+          else
+            v="0.0.0-teste.${GITHUB_SHA::7}"
+          fi
+          # a tag precisa começar por números (v1.2.3, V1.0, v2, v1.0.0-beta.1)
+          if ! [[ "$v" =~ ^[0-9]+(\.[0-9]+){0,2}([-+].*)?$ ]]; then
+            echo "::error::Tag inválida '${GITHUB_REF_NAME}': use algo como v1.2.3 ou V1.0"
+            exit 1
+          fi
+          # o CMake precisa de três números (maior.menor.correção): "1.0" vira "1.0.0" e "2" vira "2.0.0"
+          if [[ "$v" =~ ^[0-9]+$ ]]; then v="$v.0.0"; elif [[ "$v" =~ ^[0-9]+\.[0-9]+$ ]]; then v="$v.0"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Versão: $v"
+
+      - name: Node.js (interface web do servidor e testes do painel)
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Testes do painel (interface)
+        run: node --test "tools/ApolloConfig/dev/tests/*.test.mjs"
+
+      - name: .NET (janela do R3D PLAY)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publicar a janela do R3D PLAY (C#, arquivo único)
+        run: >
+          dotnet publish tools/ApolloConfig/ApolloConfig.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+          -o tools/ApolloConfig/publish
+
+      - name: MSYS2 (UCRT64) com as dependências de compilação
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+          install: >-
+            git
+            ninja
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-cppwinrt
+            mingw-w64-ucrt-x86_64-curl-winssl
+            mingw-w64-ucrt-x86_64-MinHook
+            mingw-w64-ucrt-x86_64-miniupnpc
+            mingw-w64-ucrt-x86_64-nsis
+            mingw-w64-ucrt-x86_64-onevpl
+            mingw-w64-ucrt-x86_64-openssl
+            mingw-w64-ucrt-x86_64-opus
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-nlohmann_json
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-svt-av1
+
+      - name: Compilar e empacotar (CMake + Ninja + NSIS)
+        shell: msys2 {0}
+        env:
+          BUILD_VERSION: ${{ steps.ver.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          TAG: ${{ github.ref_name }}
+          CLONE_URL: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          cmake -B build -G Ninja -S .
+          ninja -C build
+          cd build
+          cpack -G NSIS
+
+      - name: Conferir o instalador e gerar o SHA-256
+        run: |
+          cd build/cpack_artifacts
+          ls -la
+          test -f R3DPLAY-Setup.exe
+          sha256sum R3DPLAY-Setup.exe | tee R3DPLAY-Setup.exe.sha256
+
+      - name: Guardar o instalador como artefato
+        uses: actions/upload-artifact@v7
+        with:
+          name: R3DPLAY-Setup-${{ steps.ver.outputs.version }}
+          path: |
+            build/cpack_artifacts/R3DPLAY-Setup.exe
+            build/cpack_artifacts/R3DPLAY-Setup.exe.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar na release (só quando o gatilho é uma tag)
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            build/cpack_artifacts/R3DPLAY-Setup.exe
+            build/cpack_artifacts/R3DPLAY-Setup.exe.sha256
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          body: |
+            ## R3D PLAY ${{ steps.ver.outputs.version }}
+
+            Instalador do R3D PLAY para Windows 10/11 (GPU com codificador de vídeo: NVIDIA, AMD ou Intel).
+            Dê dois cliques em `R3DPLAY-Setup.exe` e aceite o pedido de administrador; ele instala o servidor, a janela do R3D PLAY,
+            o driver de tela virtual e o de controle virtual. Veja o passo a passo em `docs/INSTALACAO.md`.
+
+            O instalador ainda **não é assinado digitalmente**: o Windows (SmartScreen) e alguns antivírus podem avisar na primeira execução.
+            Para conferir que o arquivo é o mesmo que foi compilado aqui, compare o SHA-256 (`certutil -hashfile R3DPLAY-Setup.exe SHA256`)
+            com o do arquivo `R3DPLAY-Setup.exe.sha256`.
