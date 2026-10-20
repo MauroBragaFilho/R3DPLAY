@@ -157,11 +157,24 @@ internal sealed class MainForm : Form {
     core.Settings.IsStatusBarEnabled = false;
     core.SetVirtualHostNameToFolderMapping(UiHost, Path.Combine(AppContext.BaseDirectory, "ui"), CoreWebView2HostResourceAccessKind.Allow);
     core.NewWindowRequested += (_, e) => e.Handled = true;
-    core.WebMessageReceived += async (_, e) => await OnMessageAsync(e.WebMessageAsJson);
+    // Os arquivos soltos na janela (postMessageWithAdditionalObjects) só podem ser lidos aqui, antes de qualquer espera.
+    core.WebMessageReceived += async (_, e) => await OnMessageAsync(e.WebMessageAsJson, DroppedPaths(e));
     core.Navigate($"https://{UiHost}/index.html" + (Environment.GetEnvironmentVariable("R3D_TAB") is { Length: > 0 } t ? "#" + t : ""));
   }
 
-  private async Task OnMessageAsync(string json) {
+  /// <summary>Caminhos completos dos arquivos/pastas anexados à mensagem (CoreWebView2File.Path); vazio se não há anexos.</summary>
+  private static List<string> DroppedPaths(CoreWebView2WebMessageReceivedEventArgs e) {
+    var paths = new List<string>();
+    try {
+      foreach (var o in e.AdditionalObjects) {
+        var p = o switch { CoreWebView2File f => f.Path, CoreWebView2FileSystemHandle h => h.Path, _ => null };
+        if (!string.IsNullOrWhiteSpace(p)) paths.Add(p);
+      }
+    } catch { /* mensagem sem anexos */ }
+    return paths;
+  }
+
+  private async Task OnMessageAsync(string json, List<string> dropped) {
     var m = JsonNode.Parse(json)!;
     var id = m["id"]?.GetValue<int>() ?? 0;
     var cmd = m["cmd"]?.GetValue<string>();
@@ -203,6 +216,26 @@ internal sealed class MainForm : Form {
           result = new JsonObject { ["games"] = arr };
           break;
         }
+        case "installedPrograms":   // programas instalados (Menu Iniciar, registro, App Paths) com ícone; falha vira { error }
+          result = await ProgramScanner.ScanJsonAsync();
+          break;
+        case "pickFile":   // caixa nativa "Abrir" (na thread da interface); { cancelled } ou { path }
+          await Task.Yield();   // abre a caixa fora do retorno de chamada do WebView2 (um laço de mensagens aninhado ali é arriscado)
+          result = FilePicker.PickFile(this, m["title"]?.GetValue<string>());
+          break;
+        case "pickFolder":   // caixa nativa de pasta; { cancelled } ou { folder, candidates }
+          await Task.Yield();
+          result = await FilePicker.PickFolderAsync(this, m["title"]?.GetValue<string>());
+          break;
+        case "findExe":   // pasta arrastada para a janela: { folder, candidates } (o mesmo que o pickFolder devolve depois da caixa)
+          result = await FilePicker.DescribeFolderAsync(m["folder"]?.GetValue<string>());
+          break;
+        case "inspectProgram":   // lê o arquivo sem executá-lo: nome, empresa, versão, ícone, destino do atalho
+          result = await ProgramInspector.InspectAsync(m["path"]?.GetValue<string>());
+          break;
+        case "droppedFiles":   // caminhos completos dos arquivos soltos na janela (via nativeFiles do core.js)
+          result = new JsonObject { ["paths"] = new JsonArray(dropped.Select(p => (JsonNode) JsonValue.Create(p)!).ToArray()) };
+          break;
         case "log":  // diagnóstico da interface (arquivo ui.log na pasta de dados)
           File.AppendAllText(Path.Combine(ApolloClient.DataDir, "ui.log"), $"{DateTime.Now:HH:mm:ss} {m["text"]}{Environment.NewLine}");
           result = new JsonObject { ["ok"] = true };
@@ -281,10 +314,30 @@ internal sealed class MainForm : Form {
 }
 
 internal static class Program {
+  private static void WriteJson(string file, Func<JsonObject> make) {
+    JsonObject o;
+    try { o = make(); } catch (Exception ex) { o = new JsonObject { ["error"] = ex.Message }; }
+    File.WriteAllText(file, o.ToJsonString(), new UTF8Encoding(false));
+  }
+
   [STAThread]
   private static void Main(string[] args) {
     if (args.Length == 2 && args[0] == "--scan") {  // diagnóstico: grava os jogos detectados em um arquivo
       File.WriteAllLines(args[1], GameScanner.ScanAll().Select(g => $"{g.Source}\t{g.Name}\t{g.Detached ?? g.Cmd}"));
+      return;
+    }
+    // Diagnóstico dos comandos de programas (sem abrir janela): gravam em UTF-8 sem BOM o mesmo JSON que a ponte devolveria.
+    // (Usam as mesmas funções, com os mesmos prazos, que a ponte usa na janela.)
+    if (args.Length == 2 && args[0] == "--programs") {
+      WriteJson(args[1], () => ProgramScanner.ScanJsonAsync().GetAwaiter().GetResult());
+      return;
+    }
+    if (args.Length == 3 && args[0] == "--inspect") {
+      WriteJson(args[2], () => ProgramInspector.InspectAsync(args[1]).GetAwaiter().GetResult());
+      return;
+    }
+    if (args.Length == 3 && args[0] == "--find-exe") {
+      WriteJson(args[2], () => FilePicker.DescribeFolderAsync(args[1]).GetAwaiter().GetResult());
       return;
     }
     if (args.Length == 3 && args[0] == "--save-login") {  // guarda o login (criptografado, só para este usuário do Windows)

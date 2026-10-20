@@ -62,7 +62,7 @@ globalThis.window?.chrome?.webview?.addEventListener('message', (e) => {
   pending.delete(m.id);
 });
 /** Comando do app nativo. Comandos: api, login{user,pass}, logout, whoami ({user}, nunca a senha), hasCreds, scan, cover{source,gameId,name}, readCover{path}, info ({host, ips, url, dataDir}),
- * installedPrograms, pickFile{title?}, pickFolder{title?}, inspectProgram{path}, droppedFiles (via nativeFiles), stats{port?}, rebase{port} (muda a porta do painel depois de reiniciar com outra porta), log{text}, advanced. */
+ * installedPrograms, pickFile{title?}, pickFolder{title?}, findExe{folder}, inspectProgram{path}, droppedFiles (via nativeFiles), stats{port?}, rebase{port} (muda a porta do painel depois de reiniciar com outra porta), log{text}, advanced. */
 export const native = (cmd, data = {}) => new Promise((resolve) => {
   const id = ++seq;
   pending.set(id, resolve);

@@ -65,7 +65,7 @@ dialog.modal .btn:focus-visible, dialog.modal .icon-btn:focus-visible, #dlg .btn
 body:has(.gm:not([hidden]) .gm-savebar:not([hidden])) #toasts { bottom: 104px; }
 
 /* ---- Editor: seções ---- */
-.gm-form { display: flex; flex-direction: column; gap: 24px; }
+.gm-form { display: flex; flex-direction: column; gap: 20px; }
 .gm-sec { display: flex; flex-direction: column; gap: 16px; }
 .gm-sec > h3 { margin-bottom: 0; }
 .gm-sec .field.row { padding: 10px 0; border-bottom: 1px solid var(--line); }
@@ -94,6 +94,9 @@ body:has(.gm:not([hidden]) .gm-savebar:not([hidden])) #toasts { bottom: 104px; }
 .gm-cover-btns .btn .spinner { width: 14px; height: 14px; }
 .gm-cover-path input { font-size: 12px; }
 .gm-cover-path input:disabled { opacity: .5; }
+.gm-form input.gm-dim { opacity: .55; }
+/* "Buscar capa online" fica aria-disabled durante a busca (um botão desligado com o foco perderia o foco): parece desligado, mas segue focável */
+.gm-cover-btns .btn[aria-disabled="true"] { opacity: .6; cursor: progress; }
 
 /* ---- Editor: listas de comandos ---- */
 .gm-list { display: flex; flex-direction: column; gap: 10px; }
@@ -139,3 +142,98 @@ body:has(.gm:not([hidden]) .gm-savebar:not([hidden])) #toasts { bottom: 104px; }
   .gm-tools .gm-sort { flex: 0 0 auto; }
 }
 @media (prefers-reduced-motion: reduce) { .gm-card.dragging { transform: none; } }
+
+/* ======================================================================================================
+   Adicionar aplicativo (js/lib/addwizard.js e js/lib/appeditor.js): passo 1 (de onde vem o programa), passo 2 (programa, nome, capa)
+   e arrastar e soltar. Texto de apoio usa --text ou um cinza claro (as cores --dim/--faint ficam abaixo de 4,5:1 sobre estes cartões).
+   ====================================================================================================== */
+
+/* ---- Arrastar e soltar ("Solte aqui para adicionar") ---- */
+.gm-drop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 28px; background: rgba(8,11,19,.84); pointer-events: none; }
+.gm-drop-in { position: absolute; z-index: 5; }   /* dentro da janela do passo 1 */
+.gm-drop-box { width: min(520px, 100%); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 38px 24px; text-align: center; border: 2px dashed var(--cyan); background: rgba(45,226,230,.07); clip-path: var(--clip-big); }
+.gm-drop-box .ms { font-size: 52px; color: var(--cyan); }
+.gm-drop-box strong { font: 700 20px var(--font-title); color: var(--white); }
+.gm-drop-box span:not(.ms) { color: var(--text); font-size: 13px; }
+.gm-empty-tip { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; color: var(--text); }
+.gm-empty-tip .ms { color: var(--cyan); font-size: 20px; }
+
+/* ---- Passo 1: janela ---- */
+dialog.gm-pw-dlg { min-height: min(520px, 90vh); }
+.gm-pw { display: flex; flex-direction: column; gap: 16px; outline: 0; min-width: 0; }
+.gm-q { margin: 0; font: 700 18px var(--font-title); letter-spacing: 0; text-transform: none; color: var(--white); }
+.gm-pw .f-help { color: var(--text); font-size: 13px; }
+.gm-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.gm-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 172px; padding: 20px 18px; text-align: left; background: var(--card-hover); color: var(--text); clip-path: var(--clip-big); transition: background .2s var(--ease), box-shadow .2s var(--ease); }
+.gm-opt:hover { background: #243257; box-shadow: inset 0 0 0 2px var(--cyan); }
+.gm-opt-ic { width: 48px; height: 48px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); clip-path: var(--clip); }
+.gm-opt-ic .ms { font-size: 28px; }
+.gm-opt strong { color: var(--white); font-size: 15px; line-height: 1.3; }
+.gm-opt-tx { color: var(--text); font-size: 13px; line-height: 1.45; }
+.gm-dropnote { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 16px; color: var(--text); font-size: 13px; border: 1px dashed rgba(125,139,166,.45); }
+.gm-dropnote .ms { color: var(--cyan); }
+.gm-link { align-self: flex-start; padding: 4px 2px; color: var(--cyan); font: 600 13px var(--font-body); text-decoration: underline; text-underline-offset: 3px; }
+.gm-link:hover { color: var(--white); }
+
+/* ---- Passo 1: lista de programas ---- */
+.gm-pw-bar { display: flex; gap: 10px; align-items: center; }
+.gm-pw-bar .search { flex: 1; max-width: none; background: var(--input); }
+.gm-back { flex-shrink: 0; padding: 9px 14px; }
+.gm-icon-only { flex-shrink: 0; padding: 10px 12px; }
+.gm-pw-count { margin: 0; min-height: 16px; font: 11px var(--mono); color: var(--cyan); text-transform: uppercase; letter-spacing: 1px; }
+.gm-pw-count:empty { display: none; }
+.gm-pw-listbox { min-width: 0; }
+.gm-pw-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 4px; max-height: min(46vh, 430px); overflow-y: auto; }
+.gm-pw-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; text-align: left; background: var(--card-hover); color: var(--text); clip-path: var(--clip); }
+.gm-pw-row:hover, .gm-pw-row:focus-visible { background: #243257; box-shadow: inset 3px 0 0 var(--accent); }
+.gm-pw-row.used { opacity: .78; }
+.gm-pw-ic { width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; background: var(--bg); clip-path: var(--clip); }
+.gm-pw-ic img { width: 28px; height: 28px; }
+.gm-pw-ic .ms { font-size: 22px; color: var(--cyan); }
+.gm-pw-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.gm-pw-tx strong { color: var(--white); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gm-pw-tx small { color: #9aa8c2; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gm-pw-row .badge { flex-shrink: 0; }
+.gm-pw-size { flex-shrink: 0; font: 11px var(--mono); color: var(--text); }
+.gm-pw-more { margin: 8px 0 0; text-align: center; }
+.gm-pw-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 36px 12px; text-align: center; color: var(--text); }
+.gm-pw-state strong { color: var(--white); font-size: 15px; }
+.gm-pw-state .spinner { width: 28px; height: 28px; border-width: 3px; }
+.gm-pw-empty { padding: 28px 8px; }
+.gm-pw-empty .gm-q { margin-bottom: 6px; }
+.gm-pw-empty .btn .ms { display: inline; margin: 0; font-size: 20px; color: inherit; }
+.gm-row-start { justify-content: flex-start; margin-top: 0; }
+
+/* ---- Passo 2: programa, nome e capa ---- */
+.gm-prog-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.gm-prog { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; background: var(--card-hover); clip-path: var(--clip); }
+.gm-prog-icon { width: 44px; height: 44px; display: grid; place-items: center; background: var(--bg); clip-path: var(--clip); }
+.gm-prog-icon img { width: 36px; height: 36px; }
+.gm-prog-icon .ms { font-size: 26px; color: var(--cyan); }
+.gm-prog-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+/* título e caminho QUEBRAM de linha em vez de ser cortados no fim: o caminho já vem encurtado no meio (ellipsizePath), e a pasta e o arquivo finais são o que importa */
+.gm-prog-title { color: var(--white); font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+.gm-prog-path { font-size: 12px; line-height: 1.4; color: #9aa8c2; overflow-wrap: anywhere; }
+.gm-prog-hint { margin: 2px 0 0; color: var(--text); }
+.gm-prog-warn { grid-column: 1 / -1; margin: 0; }
+.gm-prog-dup, .gm-prog-store { margin: 0; }
+.gm-prog .btn { padding: 9px 16px; }
+dialog.gm-editor .gm-save { padding: 14px 38px; font-size: 13px; }
+.gm-adv-intro { margin: 0; color: var(--text); }
+.gm-cover-sec { min-width: 0; }
+.gm-ident-fields > .gm-sec { gap: 12px; }
+
+@media (max-width: 640px) {
+  .gm-prog { grid-template-columns: 44px minmax(0, 1fr); }
+  .gm-prog .btn { grid-column: 1 / -1; justify-self: start; }
+  .gm-pw-bar { flex-wrap: wrap; }
+  .gm-pw-bar .search { flex-basis: 100%; order: 3; }
+  .gm-opt { min-height: 0; }
+}
+dialog.gm-pw-dlg .modal-body { flex: 1 1 auto; }   /* o rodapé fica embaixo, a janela não muda de altura entre as telas do passo 1 */
+@media (min-width: 561px) {
+  .gm-editor .gm-ident { grid-template-columns: 220px minmax(0, 1fr); }   /* cabe "Buscar capa online" numa linha */
+  .gm-editor .gm-cover-prev { max-width: 220px; }
+}
+.gm-empty-state p + p { margin-top: 10px; }
+.gm-empty-state .gm-empty-tip { margin-top: 22px; }

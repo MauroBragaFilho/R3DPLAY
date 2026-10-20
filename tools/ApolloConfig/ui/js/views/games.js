@@ -1,10 +1,12 @@
 // Tela Jogos: grade de capas com busca e filtro por origem, AO VIVO, iniciar/encerrar, editar, excluir, reordenar
 // (arrastar e soltar + botões de teclado), detecção de jogos e editor de aplicativo.
 // Toda regra de dados fica em js/lib/appmodel.js (puro) e js/lib/library.js (servidor); aqui só interface.
-import { h, icon, state, bus, toast, confirmDlg, loadApps, sleep } from '../core.js';
+import { h, icon, state, bus, toast, confirmDlg, loadApps, sleep, nativeFiles } from '../core.js';
 import * as M from '../lib/appmodel.js';
 import { detectGames, sourceForApp, isDetectedGame, peekCover, loadCover, launchApp, closeApp, removeApp, reorderApps, rememberDismissed } from '../lib/library.js';
 import { openAppEditor } from '../lib/appeditor.js';
+import { hasFiles } from '../lib/programs.js';
+import { probeFolderDrop, dropHint } from '../lib/addwizard.js';
 
 const FILTERS = [['all', 'Todos'], ...M.SOURCE_KEYS.map((k) => [k, M.SOURCE_LABELS[k]])];
 
@@ -22,6 +24,8 @@ let dragUuid = '';
 let lastSig = '';
 let queued = false;
 let offs = [];
+let dropOffs = [];               // ouvintes de arrastar e soltar arquivos (só com a tela aberta)
+let dropShown = false;
 let focusAfter = null;            // chaves de foco (data-fk) a restaurar depois do próximo desenho
 let activeUuid = '';              // card com os botões na ordem do Tab (os demais ficam só nas setas: senão são ~5 paradas por jogo)
 let lastMoved = '';               // último card movido: para onde o foco volta quando a barra "Ordem alterada" some
@@ -81,6 +85,9 @@ function mount(r) {
   els.grid = h('div', { class: 'games gm-grid', role: 'list', 'aria-label': 'Jogos e aplicativos' });
   els.savebar = h('div', { class: 'savebar gm-savebar', role: 'region', 'aria-label': 'Ordem alterada', hidden: true });
   els.sr = h('div', { class: 'sr-only', 'aria-live': 'polite' });
+  els.dropText = h('span', { text: dropHint() });
+  els.drop = h('div', { class: 'gm-drop', 'aria-hidden': 'true', hidden: true },
+    h('div', { class: 'gm-drop-box' }, icon('upload_file'), h('strong', { text: 'Solte aqui para adicionar' }), els.dropText));
 
   root.append(
     h('div', { class: 'toolbar gm-toolbar' },
@@ -89,7 +96,7 @@ function mount(r) {
       h('div', { class: 'gm-tools' }, els.sort, els.detect, els.add)),
     els.alert, els.live,
     h('div', { class: 'gm-meta' }, els.count, els.hint),
-    els.state, els.grid, els.savebar, els.sr);
+    els.state, els.grid, els.savebar, els.sr, els.drop);
 
   root.addEventListener('click', onClick);
   els.grid.addEventListener('focusin', (e) => { const c = e.target.closest?.('.gm-card'); if (c) setActive(c.dataset.uuid); });
@@ -110,6 +117,8 @@ async function show(params = {}) {
     bus.on('apps', () => { if (loadState !== 'ready') { loadState = 'ready'; loadError = ''; } schedule(); }),
     bus.on('online', schedule),
   ];
+  hookDrop();
+  probeFolderDrop();   // (sem esperar) o aviso "Solte aqui" só cita a pasta do jogo se o app nativo sabe lê-la
   lastSig = '';
   render();
   await refresh();
@@ -121,6 +130,7 @@ function hide() {
   visible = false;
   offs.forEach((off) => off());
   offs = [];
+  unhookDrop();
 }
 /** Não deixa sair com uma ordem nova sem salvar sem perguntar. */
 async function canLeave() {
@@ -181,7 +191,7 @@ function render() {
 function hintText(all, reorder) {
   if (!all.length || loadState !== 'ready') return '';
   const base = 'Passe o mouse sobre uma capa (ou use o Tab) para iniciar o jogo neste PC, editar ou remover. Salvar qualquer alteração aqui encerra a transmissão em andamento. '
-    + 'No celular, a lista só atualiza depois de reabrir o R3D LAUNCHER.';
+    + 'No celular, a lista só atualiza depois de reabrir o R3D LAUNCHER. Para adicionar um programa, arraste o arquivo .exe dele para esta janela.';
   if (reorder) return `${base} Para mudar a ordem, arraste as capas ou use os botões < e > de cada uma.`;
   if (serverList().length > 1 && (query.trim() || source !== 'all')) return `${base} Para reordenar, limpe a busca e o filtro.`;
   return base;
@@ -243,11 +253,13 @@ function paintBody(all, list, reorder) {
     els.grid.hidden = true;
     els.state.hidden = false;
     els.state.replaceChildren(h('div', { class: 'empty gm-empty-state' }, icon('sports_esports'),
-      h('h2', { text: 'Nenhum jogo na lista ainda' }),
-      h('p', { text: 'Clique em "Detectar jogos" para o R3D PLAY encontrar os jogos da Steam, Epic, GOG e Ubisoft instalados neste PC. Se o jogo ou programa for de outro lugar, use "Adicionar aplicativo".' }),
+      h('h2', { text: 'Sua lista de jogos está vazia' }),
+      h('p', { text: 'Clique em "Detectar jogos" para o R3D PLAY encontrar sozinho os jogos da Steam, Epic, GOG e Ubisoft instalados neste PC.' }),
+      h('p', { text: 'Para qualquer outro jogo ou programa, use "Adicionar aplicativo": você escolhe na lista de programas instalados ou aponta o arquivo .exe do jogo.' }),
       h('div', { class: 'row-actions gm-center' },
         h('button', { class: 'btn primary', type: 'button', disabled: !state.online || isBusy(), dataset: { act: 'detect', fk: 'state:detect' } }, icon('travel_explore'), 'Detectar jogos'),
-        h('button', { class: 'btn', type: 'button', disabled: !state.online || isBusy(), dataset: { act: 'add', fk: 'state:add' } }, icon('add'), 'Adicionar aplicativo'))));
+        h('button', { class: 'btn', type: 'button', disabled: !state.online || isBusy(), dataset: { act: 'add', fk: 'state:add' } }, icon('add'), 'Adicionar aplicativo')),
+      h('p', { class: 'f-help gm-empty-tip' }, icon('upload_file'), 'Dica: você também pode arrastar o arquivo .exe do jogo para esta janela.')));
     return;
   }
   els.count.textContent = list.length === all.length ? M.plural(all.length, 'aplicativo', 'aplicativos') : `${list.length} de ${M.plural(all.length, 'aplicativo', 'aplicativos')}`;
@@ -422,10 +434,11 @@ async function doEdit(app, origin) {
   else if (r.unchanged) toast('Nenhuma alteração para salvar.');
   refocus(origin, cardKeys(app.uuid, 'edit'));
 }
-async function addNew() {
+/** Abre "Adicionar aplicativo". dropped = promessa de nativeFiles('droppedFiles', …) quando a pessoa soltou um arquivo na tela. */
+async function addNew({ dropped = null } = {}) {
   if (isBusy() || !state.online) return;
   const origin = document.activeElement;
-  const r = await openAppEditor({});
+  const r = await openAppEditor({ dropped });
   if (r.saved) {
     // o novo app entra no fim da lista: limpa busca e filtro para ele aparecer e leva a pessoa até ele
     if (query || source !== 'all') { query = ''; source = 'all'; els.search.value = ''; }
@@ -457,6 +470,46 @@ async function runDetect() {
   }
   await refresh();
   refocus(origin, ['search']);
+}
+
+/* ---------- Arrastar um arquivo para a tela ----------
+   Vale para a tela inteira enquanto ela está aberta. Um arquivo solto NUNCA pode navegar a página: por isso todo arrasto de arquivos
+   recebe preventDefault, mesmo quando não dá para aceitar agora. O arrasto das capas (reordenar) não traz arquivos e segue o caminho de sempre. */
+const dialogOpen = () => !!document.querySelector('dialog[open]');
+const canAcceptDrop = () => visible && state.online && loadState === 'ready' && !isBusy() && !dialogOpen();
+function markDrop(on) {
+  if (dropShown === on) return;
+  dropShown = on;
+  if (on) els.dropText.textContent = dropHint();
+  els.drop.hidden = !on;
+}
+function onFileDragOver(e) {
+  if (!hasFiles(e) || dialogOpen()) return;   // com uma janela aberta, quem decide é ela
+  e.preventDefault();
+  const ok = canAcceptDrop();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? 'copy' : 'none';
+  markDrop(ok);
+}
+function onFileDragLeave(e) { if (!e.relatedTarget) markDrop(false); }
+function onFileDrop(e) {
+  if (!hasFiles(e) || dialogOpen()) return;
+  e.preventDefault();
+  markDrop(false);
+  if (!canAcceptDrop()) { if (!state.online) toast('O R3D PLAY não está respondendo. Tente de novo quando ele voltar.', 'err'); return; }
+  // a ponte precisa receber os arquivos enquanto o evento ainda está ativo: nada de await antes desta linha
+  const dropped = nativeFiles('droppedFiles', e.dataTransfer.files);
+  dropped.catch(() => {});   // quem lê a resposta trata o erro; isto só evita um aviso de "promessa sem dono" se a janela nem chegar a abrir
+  addNew({ dropped });
+}
+function hookDrop() {
+  unhookDrop();
+  const on = (t, fn) => { document.addEventListener(t, fn); return () => document.removeEventListener(t, fn); };
+  dropOffs = [on('dragover', onFileDragOver), on('dragleave', onFileDragLeave), on('drop', onFileDrop), on('dragend', () => markDrop(false))];
+}
+function unhookDrop() {
+  dropOffs.forEach((off) => off());
+  dropOffs = [];
+  markDrop(false);
 }
 
 /* ---------- Ordem ---------- */

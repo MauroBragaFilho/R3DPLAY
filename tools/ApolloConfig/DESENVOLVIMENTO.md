@@ -23,7 +23,7 @@ quem precisar de uma mudança neles **não edita**: descreve no campo `coreReque
 | Dono | Pode criar/editar |
 |---|---|
 | settings | `js/views/settings.js`, `js/lib/schema.js`, `js/lib/serialize.js`, `js/lib/widgets/*.js`, `css/settings.css`, `dev/tests/settings*.test.mjs` |
-| games | `js/views/games.js`, `js/lib/library.js`, `js/lib/appmodel.js`, `js/lib/appeditor.js`, `css/games.css`, `dev/tests/games*.test.mjs` |
+| games | `js/views/games.js`, `js/lib/library.js`, `js/lib/appmodel.js`, `js/lib/appeditor.js`, `js/lib/addwizard.js`, `js/lib/programs.js`, `css/games.css`, `dev/tests/games*.test.mjs` |
 | devices | `js/views/devices.js`, `js/lib/perms.js`, `js/lib/pairing.js`, `js/lib/qr.js`, `css/devices.css`, `dev/tests/devices*.test.mjs` |
 | home | `js/views/home.js`, `js/lib/stats.js`, `css/home.css`, `dev/tests/home*.test.mjs` |
 | system | `js/views/system.js`, `js/lib/logs.js`, `css/system.css`, `dev/tests/system*.test.mjs` |
@@ -63,6 +63,21 @@ export default {
 
 Comandos nativos (`native(cmd, data)`): `api`, `login{user,pass}`, `logout`, `hasCreds`, `scan` (`{games:[{source,id,name,uuid,app}]}`), `cover{source,gameId,name}` (`{data: base64 PNG|null}`),
 `readCover{path}` (`{data}`), `info` (`{host, ips:[{name,ip,kind: wifi|lan|tailscale|vpn}], url}`), `stats{port?}` (`{ok, body}` com o JSON abaixo, porta HTTP 47989), `log{text}`.
+
+Comandos de "Adicionar aplicativo" (`ProgramScanner.cs`, `FilePicker.cs`; falha SEMPRE como `{ error: "mensagem em português" }`, nunca lança para a interface):
+
+| Comando | Resposta |
+|---|---|
+| `installedPrograms {}` | `{ programs: [{ name, exe, args, dir, source: startmenu\|registry\|apppaths, icon }], scannedMs }`. Já sem lixo (desinstaladores, instaladores, redistribuíveis, atualizadores, ajuda…), ordenado em pt-BR, no máximo 800. `icon` = PNG 32×32 em base64 sem `data:` (ou `null`). `args` vem do atalho (ex.: `--cd-to-home`, `/memoryWindow start`). **O mesmo `exe` pode aparecer várias vezes com `args` diferentes**: a chave de um programa é exe + argumentos (`programKey` em `programs.js`). `dir` nunca é pasta de versão (`app-X.Y.Z`), do Menu Iniciar ou da Área de Trabalho. Jogos da Steam ficam de fora de propósito (já entram por "Detectar jogos"). |
+| `pickFile { title? }` | `{ cancelled: true }` ou `{ path }`. Caixa nativa do Windows (`.exe`, `.lnk`, `.bat`, `.cmd`; um `.lnk` escolhido volta como `.lnk`, para o `inspectProgram` resolver o destino). |
+| `pickFolder { title? }` | `{ cancelled: true }` ou `{ folder, candidates: [{ path, name, size }] }`. `name` = nome do arquivo com extensão; `size` em bytes. **`candidates` já vem do mais para o menos provável** (a interface mantém essa ordem: `rankCandidates(..., { trustOrder: true })`). |
+| `findExe { folder }` | O mesmo `{ folder, candidates }` do `pickFolder`, sem abrir caixa (pasta arrastada para a janela). `folder` vazio devolve `candidates: []` (a interface usa isso para descobrir se o app nativo sabe ler pastas soltas). |
+| `inspectProgram { path }` | `{ ok: true, kind: exe\|lnk\|bat\|other, path (para .lnk: o .exe de destino), args, dir, name, product, description, company, version, icon, shortcutName (só em lnk) }` ou `{ ok: false, error, isFolder? }`. Nunca executa o arquivo. `name` já é o nome sugerido pelo app nativo (o que mais lembra o arquivo entre produto e descrição; em atalho, o nome do atalho). `isFolder: true` quando o caminho é uma pasta. |
+| `droppedFiles` | Só via `nativeFiles(cmd, FileList)` do `core.js` (`postMessageWithAdditionalObjects` do WebView2): `{ paths: [caminho completo, …] }` dos arquivos/pastas soltos na janela. |
+
+Fluxo na interface: `js/lib/addwizard.js` (passo 1: programas instalados, arquivo, pasta, arrastar e soltar) → `js/lib/appeditor.js` (passo 2, o mesmo para criar e editar; tudo o que é técnico fica em "Opções avançadas"). A lógica pura (busca, nome sugerido, comando, ranking) está em `js/lib/programs.js` e é testada com respostas reais do C# em `dev/tests/games-programs-bridge.test.mjs`. O aplicativo salvo para um programa é `{ name, cmd: "caminho do exe" + " " + args, working-dir: dir, virtual-display: true, terminate-on-pause: true, …padrões do schema }`.
+
+Testar a ponte nativa SEM abrir janela (grava em UTF-8 sem BOM o mesmo JSON que a ponte devolveria): `ApolloConfig.exe --programs saida.json`, `--inspect <arquivo> saida.json`, `--find-exe <pasta> saida.json` (compile em pasta temporária: `dotnet build -c Release -o "%TEMP%\r3d-cs-build"`). `node tools/ApolloConfig/dev/check-programs.mjs [ApolloConfig.exe] [--json saida.json] [--no-deep] [--wide]` roda todas as conferências do C#. Variáveis só de teste: `R3D_PROGRAMS_EXTRA_LNK_DIR` (pasta extra de atalhos varrida pelo `--programs`) e `R3D_PROGRAMS_TRACE` (arquivo com os tempos de cada etapa da varredura).
 
 `GET http://localhost:47989/r3d/stats` (sem senha) devolve, por exemplo:
 ```json
@@ -109,6 +124,8 @@ node tools/ApolloConfig/dev/devserver.mjs --port=5181 > /tmp/dev5181.log 2>&1 & 
 #   Get-CimInstance Win32_Process -Filter "Name='node.exe'" | ? { $_.CommandLine -like '*devserver.mjs*--port=5181*' } | % { Stop-Process -Id $_.ProcessId -Force }
 curl -s http://127.0.0.1:5181/__mutations
 ```
+**"Adicionar aplicativo" no navegador**: por padrão o devserver INVENTA as respostas de `installedPrograms`, `pickFile`, `pickFolder`, `inspectProgram`, `findExe` e `droppedFiles` (nada toca o disco). Modos: `GET /__sim?programs=ok|many|empty|error|slow|old&pickFile=ok|cancel|error&pickFolder=one|many|none|cancel|error&findExe=on|off&saveFail=on|off`.
+Com **dados reais** do C# (só lê o disco; não executa programa nenhum): `$env:R3D_NATIVE_EXE="$env:TEMP\r3d-cs-build\ApolloConfig.exe"` antes de iniciar o devserver faz `installedPrograms`, `inspectProgram` e `findExe` rodarem o app nativo de verdade pelas flags `--programs`/`--inspect`/`--find-exe`. As caixas do Windows continuam simuladas, mas podem devolver um caminho real: `GET /__sim?pickFilePath=<arquivo>&pickFolderPath=<pasta>&dropPaths=<caminho1>|<caminho2>` (com `pickFolderPath`, os candidatos vêm do C# real; valor vazio desliga).
 Abra `http://127.0.0.1:<porta>/index.html#settings` no navegador embutido (ferramentas `mcp__Claude_Browser__*`, carregue com ToolSearch). **Use uma aba sua** (`tabs_create`, passe sempre o `tabId`) e feche-a ao terminar; não mexa nas abas dos outros. Meça com `resize_window` (1280×820 e 760×800) e confira o console (`read_console_messages`).
 Só dá para validar a interface pelo navegador; o WebView2 real é testado depois, pelo integrador.
 
